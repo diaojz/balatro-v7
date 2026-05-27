@@ -736,8 +736,8 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7.8 调整：Joker 段 260→250（卡贴底 + 顶部留 50px 给 triggering 上移 33 余量；不再有底部空白） */
-  grid-template-rows: 250px 1fr 280px;
+  /* v7.18：HandArea 段 280→300 容纳 padding-bottom 28 的底部呼吸空间 */
+  grid-template-rows: 250px 1fr 300px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;

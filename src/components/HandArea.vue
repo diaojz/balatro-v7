@@ -121,7 +121,7 @@ defineExpose({ cardRefs, aiBtnRef })
 .hand-area {
   display: flex;
   flex-direction: column;
-  padding: 8px 16px 12px; /* v7.5：padding-top 32→8 收掉，选中态 -22 自然穿出段顶进入 PlayArea 底部红框区域（视觉融合） */
+  padding: 8px 16px 28px; /* v7.18：padding-bottom 12→28 给按钮底部呼吸空间，不再贴 viewport 底 */
   overflow: visible;
 }
 
