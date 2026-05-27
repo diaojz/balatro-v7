@@ -99,8 +99,8 @@ defineExpose({ cardRefs, aiBtnRef })
 .hand-area {
   display: flex;
   flex-direction: column;
-  padding: 36px 16px 12px; /* padding-top ≥ 36px 给选中上移留余量 */
-  overflow: hidden;
+  padding: 56px 16px 12px; /* v7.1：padding-top 56px 给选中上移 -22px + scale 留余量，overflow visible 保证选中态不被切 */
+  overflow: visible;
 }
 
 .hand-header {
@@ -120,12 +120,13 @@ defineExpose({ cardRefs, aiBtnRef })
 
 .hand-cards {
   display: flex;
+  justify-content: center; /* v7.1：手牌水平居中 */
   gap: 8px;
   align-items: flex-start;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow: visible; /* v7.1：让选中态 -22px 不被切 */
   padding-bottom: 8px;
-  min-height: 145px;
+  min-height: 170px; /* 卡 145 + 选中态 -22 余量 */
 }
 
 .card-corner {

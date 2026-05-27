@@ -236,9 +236,11 @@ body {
 .playing-card.selected:hover {
   transform: translateY(-22px) scale(1.04);
 }
-/* 发牌飞入：被 JS 动画控制（dealing class 用于标记状态） */
+/* v7.1：发牌飞入期间隐藏真牌槽位（飞牌克隆在飞，槽位不能同时显示）
+   动画结束后 App.vue animateFlyCard.onfinish 清 dealing 标记，真牌淡入 */
 .playing-card.dealing {
   pointer-events: none;
+  opacity: 0;
 }
 /* 逐张高亮 */
 .playing-card.highlighting {

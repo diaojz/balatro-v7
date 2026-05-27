@@ -23,7 +23,7 @@
     <div class="sb-panel">
       <div class="hud-label">当前分</div>
       <div class="inset-num" style="width:100%;text-align:center">
-        <span class="round-score" ref="scoreEl">{{ displayScore }}</span>
+        <span class="round-score" :class="{ bumping: scoreBumping }" ref="scoreEl">{{ displayScore }}</span>
       </div>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" :style="{ width: progressPercent + '%' }"></div>
@@ -34,12 +34,12 @@
     <div class="sb-panel">
       <div class="hand-type-name" :class="{ empty: !handName }">{{ handName || '— 选牌出牌 —' }}</div>
       <div class="score-row">
-        <div class="chips-block" ref="chipsEl">
+        <div class="chips-block" :class="{ bumping: chipsBumping }" ref="chipsEl">
           <div class="score-num">{{ handChips }}</div>
           <div class="score-label">筹码</div>
         </div>
         <span class="times-sign">×</span>
-        <div class="mult-block" ref="multEl">
+        <div class="mult-block" :class="{ bumping: multBumping }" ref="multEl">
           <div class="score-num">{{ handMult }}</div>
           <div class="score-label">倍率</div>
         </div>
@@ -111,21 +111,33 @@ const scoreEl = ref(null)
 
 defineExpose({ chipsEl, multEl, scoreEl })
 
-// blindScore 用 RAF 数字插值跳动
+// blindScore 用 RAF 数字插值跳动 + scoreBump 视觉动画
 const displayScore = ref(0)
+const scoreBumping = ref(false)
+const chipsBumping = ref(false)
+const multBumping = ref(false)
 let rafId = null
+let scoreBumpTimer = null
+let chipsBumpTimer = null
+let multBumpTimer = null
 
 watch(() => props.blindScore, (newVal, oldVal) => {
   if (rafId) cancelAnimationFrame(rafId)
   const start = oldVal ?? 0
   const end = newVal
+  if (start === end) return
   const duration = 600 * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-scale') || '1'))
   const startTime = performance.now()
+
+  // v7.1：触发夸张 bump（scale 1.4 + 金色脉冲）
+  if (scoreBumpTimer) clearTimeout(scoreBumpTimer)
+  scoreBumping.value = false
+  requestAnimationFrame(() => { scoreBumping.value = true })
+  scoreBumpTimer = setTimeout(() => { scoreBumping.value = false }, duration + 200)
 
   function tick(now) {
     const elapsed = now - startTime
     const progress = Math.min(elapsed / duration, 1)
-    // ease-out
     const eased = 1 - (1 - progress) ** 3
     displayScore.value = Math.round(start + (end - start) * eased)
     if (progress < 1) {
@@ -136,6 +148,22 @@ watch(() => props.blindScore, (newVal, oldVal) => {
     }
   }
   rafId = requestAnimationFrame(tick)
+})
+
+// v7.1：chips / mult 变化时也触发 bump（scale 1.15）
+watch(() => props.handChips, (newVal, oldVal) => {
+  if (newVal === oldVal || newVal === 0) return
+  if (chipsBumpTimer) clearTimeout(chipsBumpTimer)
+  chipsBumping.value = false
+  requestAnimationFrame(() => { chipsBumping.value = true })
+  chipsBumpTimer = setTimeout(() => { chipsBumping.value = false }, 400)
+})
+watch(() => props.handMult, (newVal, oldVal) => {
+  if (newVal === oldVal || newVal === 0) return
+  if (multBumpTimer) clearTimeout(multBumpTimer)
+  multBumping.value = false
+  requestAnimationFrame(() => { multBumping.value = true })
+  multBumpTimer = setTimeout(() => { multBumping.value = false }, 400)
 })
 
 const progressPercent = computed(() => {
@@ -180,8 +208,44 @@ const rewardPreview = computed(() => 5 + props.handsLeft)
 }
 
 .round-score {
-  font: 700 40px/1 'VT323', monospace;
+  font: 700 48px/1 'VT323', monospace;
   color: var(--red);
+  display: inline-block;
+  transition: color .2s ease, text-shadow .2s ease, transform .2s ease;
+  transform-origin: center;
+}
+/* v7.1：blindScore 跳动夸张动画 */
+.round-score.bumping {
+  animation: scoreBump calc(0.8s * var(--anim-scale, 1)) cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes scoreBump {
+  0%   { transform: scale(1); color: var(--red); text-shadow: none; }
+  15%  { transform: scale(1.5); color: var(--gold); text-shadow: 0 0 24px var(--gold), 0 0 12px var(--gold); }
+  40%  { transform: scale(1.25); color: var(--gold); text-shadow: 0 0 20px var(--gold); }
+  70%  { transform: scale(1.1);  color: var(--gold); text-shadow: 0 0 12px var(--gold); }
+  100% { transform: scale(1);    color: var(--red); text-shadow: none; }
+}
+
+/* v7.1：chips/mult 块跳动 */
+.chips-block, .mult-block {
+  transition: transform .15s ease;
+  transform-origin: center;
+}
+.chips-block.bumping {
+  animation: blockBumpChips calc(0.4s * var(--anim-scale, 1)) cubic-bezier(.34,1.56,.64,1);
+}
+.mult-block.bumping {
+  animation: blockBumpMult calc(0.4s * var(--anim-scale, 1)) cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes blockBumpChips {
+  0%   { transform: scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.4); }
+  40%  { transform: scale(1.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 3px 0 rgba(0,0,0,.4), 0 0 24px var(--chips-from); }
+  100% { transform: scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.4); }
+}
+@keyframes blockBumpMult {
+  0%   { transform: scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.4); }
+  40%  { transform: scale(1.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 3px 0 rgba(0,0,0,.4), 0 0 24px var(--mult-from); }
+  100% { transform: scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.4); }
 }
 
 .progress-bar-bg {

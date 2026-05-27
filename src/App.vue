@@ -210,6 +210,8 @@ function createDeck() {
 }
 
 // ===== 发牌（从牌堆飞入手牌槽位）=====
+// v7.1 修：dealing 期间真牌 opacity:0（CSS），飞牌 clone 完成时清 dealing 让真牌淡入
+//        → 同一张牌不再同时存在「真牌槽位 + 飞牌 clone」两处
 async function dealCards(count) {
   const drawn = []
   for (let i = 0; i < count && deck.value.length > 0; i++) {
@@ -232,26 +234,27 @@ async function dealCards(count) {
     hand.value.push(card)
 
     await nextTick()
-    // 飞入动画
+    const cardId = card.id
+
+    // 飞入动画：动画 onfinish 时清 dealing → 真牌淡入显示
     if (deckRect) {
-      const cardEl = handAreaRef.value?.cardRefs?.[card.id]
+      const cardEl = handAreaRef.value?.cardRefs?.[cardId]
       if (cardEl) {
         const targetRect = cardEl.getBoundingClientRect()
-        animateFlyCard(deckRect, targetRect)
+        animateFlyCard(deckRect, targetRect, cardId)
+        continue
       }
     }
 
-    // 400ms 后清除 dealing 标记
-    const cardId = card.id
-    setTimeout(() => {
-      const idx = hand.value.findIndex(c => c.id === cardId)
-      if (idx !== -1) hand.value[idx] = { ...hand.value[idx], dealing: false }
-    }, 400)
+    // fallback：没飞牌 clone 时直接显示真牌
+    const idx = hand.value.findIndex(c => c.id === cardId)
+    if (idx !== -1) hand.value[idx] = { ...hand.value[idx], dealing: false }
   }
 }
 
 // 从 fromRect 飞到 toRect（纯 DOM clone + Web Animations）
-function animateFlyCard(fromRect, toRect) {
+// v7.1：第 3 参 cardId 用于飞行完成时清对应卡的 dealing 标记
+function animateFlyCard(fromRect, toRect, cardId = null) {
   const clone = document.createElement('div')
   clone.style.cssText = `
     position: fixed;
@@ -279,7 +282,14 @@ function animateFlyCard(fromRect, toRect) {
     { transform: `translate(${dx}px,${dy}px) scale(${scaleX},${scaleY})`, opacity: 1 },
   ], { duration: dur, easing: 'cubic-bezier(0.2, 0.8, 0.4, 1)', fill: 'forwards' })
 
-  anim.onfinish = () => clone.remove()
+  anim.onfinish = () => {
+    clone.remove()
+    // v7.1：飞牌结束 → 清 dealing 让真牌淡入
+    if (cardId !== null) {
+      const idx = hand.value.findIndex(c => c.id === cardId)
+      if (idx !== -1) hand.value[idx] = { ...hand.value[idx], dealing: false }
+    }
+  }
 }
 
 // ===== 初始化 =====
@@ -614,8 +624,9 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7 硬锁定：Joker 段 230px，手牌+按钮段 280px，出牌 1fr 吸收剩余 */
-  grid-template-rows: 230px 1fr 280px;
+  /* v7.1 调整：缩小出牌段 + 加大手牌段（修选中遮挡 + 视觉权重平衡）
+     Joker 段 220px，手牌+按钮段 360px（选中态 -22px 不被遮），出牌 1fr 吸收剩余 */
+  grid-template-rows: 220px 1fr 360px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;

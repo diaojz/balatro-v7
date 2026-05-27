@@ -17,41 +17,43 @@
         </template>
       </div>
 
-      <!-- 出牌展示（动画由父组件通过 playAreaRef 管理） -->
-      <div v-else class="cards-row">
-        <div
-          v-for="(card, idx) in playedCards"
-          :key="card.id"
-          class="playing-card played"
-          :class="{ highlighting: highlightingIdx >= idx }"
-          :ref="el => setPlayedCardRef(idx, el)"
-        >
-          <!-- 飞字容器 -->
-          <div v-if="flyTexts[idx]" class="fly-text chips-fly">{{ flyTexts[idx] }}</div>
-
-          <div class="card-corner top-left" :style="{ color: suitColor(card.suit) }">
-            <div class="card-rank">{{ card.rank }}</div>
-            <div class="card-suit-small">{{ card.suit }}</div>
+      <!-- 出牌展示：v7.1 改 column 布局 → 公式在上 / 牌在下 / 全水平居中 -->
+      <template v-else>
+        <!-- 计分公式爆出（在牌上方） -->
+        <Transition name="formula">
+          <div v-if="showFormulaOverlay" class="formula-inline">
+            <span class="formula-chips">{{ formulaChips }}</span>
+            <span class="formula-x"> × </span>
+            <span class="formula-mult">{{ formulaMult }}</span>
+            <span class="formula-eq"> = </span>
+            <span class="formula-score">{{ formulaScore }}</span>
           </div>
-          <div class="card-center" :style="{ color: suitColor(card.suit) }">{{ card.suit }}</div>
-          <div class="card-corner bottom-right" :style="{ color: suitColor(card.suit) }">
-            <div class="card-rank">{{ card.rank }}</div>
-            <div class="card-suit-small">{{ card.suit }}</div>
+        </Transition>
+
+        <div class="cards-row">
+          <div
+            v-for="(card, idx) in playedCards"
+            :key="card.id"
+            class="playing-card played"
+            :class="{ highlighting: highlightingIdx >= idx }"
+            :ref="el => setPlayedCardRef(idx, el)"
+          >
+            <!-- 飞字容器 -->
+            <div v-if="flyTexts[idx]" class="fly-text chips-fly">{{ flyTexts[idx] }}</div>
+
+            <div class="card-corner top-left" :style="{ color: suitColor(card.suit) }">
+              <div class="card-rank">{{ card.rank }}</div>
+              <div class="card-suit-small">{{ card.suit }}</div>
+            </div>
+            <div class="card-center" :style="{ color: suitColor(card.suit) }">{{ card.suit }}</div>
+            <div class="card-corner bottom-right" :style="{ color: suitColor(card.suit) }">
+              <div class="card-rank">{{ card.rank }}</div>
+              <div class="card-suit-small">{{ card.suit }}</div>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
-
-    <!-- 中央计分公式爆出 -->
-    <Transition name="formula">
-      <div v-if="showFormulaOverlay" class="formula-overlay">
-        <span class="formula-chips">{{ formulaChips }}</span>
-        <span class="formula-x"> × </span>
-        <span class="formula-mult">{{ formulaMult }}</span>
-        <span class="formula-eq"> = </span>
-        <span class="formula-score">{{ formulaScore }}</span>
-      </div>
-    </Transition>
 
     <!-- 牌堆（absolute 内嵌，v7 关键调整） -->
     <DeckPile :deck-count="deckCount" ref="deckPileRef" />
@@ -96,7 +98,7 @@ function suitColor(suit) {
 .play-area {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch; /* v7.1：让 play-cards 撑满宽度，里面再居中 */
   padding: 12px 16px 8px;
   overflow: hidden;
   /* v7 关键：position: relative 让 DeckPile absolute 可以锚定 */
@@ -122,15 +124,17 @@ function suitColor(suit) {
 
 .play-cards {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column; /* v7.1：竖排 → 公式在上 / 牌在下 */
+  align-items: center;     /* 水平居中 */
+  justify-content: center; /* 垂直居中 */
+  gap: 18px;
   flex: 1;
+  min-height: 0;
 }
 
 .empty-hint {
   font: 14px/1.4 var(--sans);
   color: rgba(200,210,232,.55);
-  align-self: center;
-  margin-top: 20px;
 }
 
 .formula-preview {
@@ -143,6 +147,7 @@ function suitColor(suit) {
   display: flex;
   gap: 8px;
   align-items: flex-start;
+  justify-content: center; /* v7.1：牌水平居中 */
   position: relative;
 }
 
@@ -183,20 +188,17 @@ function suitColor(suit) {
 }
 .chips-fly { color: #4dd6ff; }
 
-/* 计分公式爆出覆盖 */
-.formula-overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+/* v7.1：计分公式 inline 显示（在牌上方），不再 absolute */
+.formula-inline {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  pointer-events: none;
-  z-index: 20;
   background: rgba(5,8,24,.85);
   border: 2px solid rgba(255,200,87,.6);
   border-radius: 12px;
   padding: 12px 20px;
+  pointer-events: none;
+  z-index: 20;
   backdrop-filter: blur(4px);
 }
 .formula-chips  { font: 900 40px/1 'Press Start 2P', monospace; color: #4dd6ff; }
@@ -205,10 +207,20 @@ function suitColor(suit) {
 .formula-eq     { font: 900 28px/1 'Press Start 2P', monospace; color: #c9d2e8; }
 .formula-score  { font: 900 52px/1 'Press Start 2P', monospace; color: #ffd166; }
 
+/* v7.1：inline 公式的 transition（不带 translate 中心校正，因为已经是文档流） */
 .formula-enter-active {
-  animation: formulaIn calc(0.3s * var(--anim-scale)) ease-out forwards;
+  animation: formulaInline calc(0.3s * var(--anim-scale)) ease-out forwards;
 }
 .formula-leave-active {
-  animation: formulaOut calc(0.25s * var(--anim-scale)) ease-in forwards;
+  animation: formulaInlineOut calc(0.25s * var(--anim-scale)) ease-in forwards;
+}
+@keyframes formulaInline {
+  0%   { opacity: 0; transform: scale(0.5); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes formulaInlineOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.15); }
 }
 </style>
