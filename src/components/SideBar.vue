@@ -5,9 +5,10 @@
       <span class="logo-text">🃏 小丑牌</span>
     </div>
 
-    <!-- 2. 盲注大面板 -->
+    <!-- 2. 盲注大面板（v7.11：含 Ante + 关数 信息） -->
     <div class="sb-panel blind-panel">
-      <div class="hud-label">盲注 {{ blindIndex + 1 }}/3</div>
+      <div class="ante-badge">Ante {{ blind?.ante ?? 1 }} / {{ totalAntes }}</div>
+      <div class="hud-label">第 {{ blindIndex + 1 }} / {{ totalBlinds }} 关</div>
       <div class="blind-main">
         <span class="blind-icon">{{ blind.icon }}</span>
         <span class="blind-name">{{ blind.name }}</span>
@@ -71,9 +72,9 @@
       </div>
     </div>
 
-    <!-- 7. 底注/回合 -->
+    <!-- 7. 关卡 / 回合（v7.11：用总关数 10） -->
     <div class="sb-panel ante-round">
-      <span class="ante-text">底注 {{ blindIndex + 1 }}/3</span>
+      <span class="ante-text">关 {{ blindIndex + 1 }} / {{ totalBlinds }}</span>
       <span class="sep">·</span>
       <span class="round-text">回合 {{ round }}</span>
     </div>
@@ -88,6 +89,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { STARTING_HANDS } from '../config/constants.js'
+import { TOTAL_BLINDS, TOTAL_ANTES } from '../config/blinds.js'
 
 const props = defineProps({
   blindIndex: Number,
@@ -101,6 +103,9 @@ const props = defineProps({
   handChips: Number,
   handMult: Number,
 })
+
+const totalBlinds = TOTAL_BLINDS
+const totalAntes = TOTAL_ANTES
 
 defineEmits(['restart'])
 
@@ -171,7 +176,11 @@ const progressPercent = computed(() => {
   return Math.min(100, (props.blindScore / props.blind.target) * 100)
 })
 
-const rewardPreview = computed(() => 5 + props.handsLeft)
+// v7.11：奖励 = 5 + 剩余手数 + (ante - 1) * 2
+const rewardPreview = computed(() => {
+  const ante = props.blind?.ante ?? 1
+  return 5 + props.handsLeft + (ante - 1) * 2
+})
 </script>
 
 <style scoped>
@@ -184,6 +193,19 @@ const rewardPreview = computed(() => 5 + props.handsLeft)
   color: #ffd166;
   text-shadow: 2px 2px 0 #000;
   letter-spacing: 2px;
+}
+
+/* v7.11：Ante 徽章 */
+.ante-badge {
+  display: inline-block;
+  font: 800 11px/1 'Press Start 2P', monospace;
+  color: #050818;
+  background: linear-gradient(135deg, #ffd166, #f59e0b);
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  box-shadow: 0 2px 0 rgba(0,0,0,.4);
 }
 
 .blind-panel .blind-main {

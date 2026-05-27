@@ -7,9 +7,9 @@
       </h2>
 
       <p v-if="state === 'lost'" class="end-desc">
-        卡在第 {{ blindIndex + 1 }} 关
+        卡在第 {{ blindIndex + 1 }} / {{ totalBlinds }} 关
       </p>
-      <p v-else class="end-desc won-desc">恭喜通过全部 3 关！</p>
+      <p v-else class="end-desc won-desc">🏆 恭喜通过全部 {{ totalBlinds }} 关！击败终极 BOSS！</p>
 
       <!-- 显示最终金币 + 持有 Joker -->
       <div class="end-stats">
@@ -35,6 +35,8 @@
 </template>
 
 <script setup>
+import { TOTAL_BLINDS } from '../config/blinds.js'
+
 const props = defineProps({
   state: String,
   blindIndex: Number,
@@ -43,6 +45,8 @@ const props = defineProps({
 })
 
 defineEmits(['restart'])
+
+const totalBlinds = TOTAL_BLINDS
 </script>
 
 <style scoped>

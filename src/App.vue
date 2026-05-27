@@ -113,7 +113,7 @@ import SettingsModal from './components/SettingsModal.vue'
 import ShopView from './components/ShopView.vue'
 import EndView from './components/EndView.vue'
 
-import { BLINDS, calcReward } from './config/blinds.js'
+import { BLINDS, calcReward, TOTAL_BLINDS, TOTAL_ANTES } from './config/blinds.js'
 import { JOKERS } from './config/jokers.js'
 import { HAND_SIZE, STARTING_HANDS, STARTING_DISCARDS, MAX_JOKERS } from './config/constants.js'
 import { calculateScore, getCardValue } from './utils/scoring.js'
@@ -167,15 +167,15 @@ const shopAIHighlight = ref(null)
 const settings = ref(loadSettings())
 const showSettings = ref(false)
 
-// v7.2：关卡切换 toast
+// v7.2 关卡切换 toast（v7.11：含 Ante 信息）
 const blindToastText = ref('')
 let blindToastTimer = null
 function showBlindToast() {
   const blind = BLINDS[blindIndex.value]
   if (!blind) return
-  blindToastText.value = `第 ${blindIndex.value + 1} 关 · ${blind.name} · 目标 ${blind.target} 分`
+  blindToastText.value = `Ante ${blind.ante} · 第 ${blindIndex.value + 1}/${TOTAL_BLINDS} 关 · ${blind.name} · 目标 ${blind.target}`
   if (blindToastTimer) clearTimeout(blindToastTimer)
-  blindToastTimer = setTimeout(() => { blindToastText.value = '' }, 1800)
+  blindToastTimer = setTimeout(() => { blindToastText.value = '' }, 2000)
 }
 
 // 计分预估（出牌区公式预览）
@@ -479,10 +479,10 @@ async function handlePlay() {
 
   // 步骤 8：判断通关/失败
   if (blindScore.value >= currentBlind.value.target) {
-    const reward = calcReward(handsLeft.value)
+    const reward = calcReward(handsLeft.value, currentBlind.value.ante)
     coins.value += reward
     await delay(400)
-    // PRD §10.2 硬约束：大盲注通关 → won，不进商店
+    // 终极 BOSS（最后一关）通关 → won，不进商店
     if (blindIndex.value >= BLINDS.length - 1) {
       gameState.value = 'won'
     } else {
