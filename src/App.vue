@@ -49,12 +49,14 @@
         :selected-ids="selectedIds"
         :discards-left="discardsLeft"
         :game-state="gameState"
+        :ai-auto-mode="settings.aiAutoMode"
         @toggle-select="toggleSelect"
         @play="handlePlay"
         @discard="handleDiscard"
         @sort-by-rank="sortByRank"
         @sort-by-suit="sortBySuit"
         @ai-play="handleAIPlay"
+        @toggle-auto="toggleAiAutoMode"
         ref="handAreaRef"
       />
     </div>
@@ -634,6 +636,13 @@ function handleSettingsUpdate(newSettings) {
   settings.value = newSettings
   saveSettings(newSettings)
   applyAnimScale(newSettings.animSpeed)
+}
+
+// v7.7：手牌区右侧 AI 全自动 toggle 快捷开关（跟设置面板 aiAutoMode 同步）
+function toggleAiAutoMode() {
+  const next = { ...settings.value, aiAutoMode: !settings.value.aiAutoMode }
+  settings.value = next
+  saveSettings(next)
 }
 
 // ===== v7.3 AI 全自动托管：while loop 不暂停 + 每手充足停顿让用户看清动效 =====

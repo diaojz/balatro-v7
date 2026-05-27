@@ -64,8 +64,18 @@
         </button>
       </div>
 
-      <!-- 右：AI 出牌 -->
+      <!-- 右：AI 全自动 toggle（上）+ AI 出牌（下） -->
       <div class="btn-right">
+        <!-- v7.7：AI 全自动快捷开关，跟设置面板同步 -->
+        <button
+          class="ai-auto-toggle"
+          :class="{ on: aiAutoMode }"
+          @click="$emit('toggle-auto')"
+          :title="aiAutoMode ? '点击关闭 AI 全自动托管' : '点击开启 AI 全自动托管'"
+        >
+          <span class="auto-dot"></span>
+          <span class="auto-label">{{ aiAutoMode ? '全自动 ON' : '全自动 OFF' }}</span>
+        </button>
         <AIButton
           v-if="gameState === 'playing'"
           :disabled="hand.length === 0"
@@ -86,9 +96,10 @@ const props = defineProps({
   selectedIds: Set,
   discardsLeft: Number,
   gameState: String,
+  aiAutoMode: { type: Boolean, default: false },
 })
 
-defineEmits(['toggle-select', 'play', 'discard', 'sort-by-rank', 'sort-by-suit', 'ai-play', 'card-ref'])
+defineEmits(['toggle-select', 'play', 'discard', 'sort-by-rank', 'sort-by-suit', 'ai-play', 'card-ref', 'toggle-auto'])
 
 const aiBtnRef = ref(null)
 const selectedCount = computed(() => props.selectedIds?.size ?? 0)
@@ -185,8 +196,54 @@ defineExpose({ cardRefs, aiBtnRef })
 }
 .btn-right {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* v7.7：AI 全自动快捷 toggle 按钮 */
+.ai-auto-toggle {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.10);
+  border: 2px solid rgba(168, 85, 247, 0.35);
+  color: #c9aafe;
+  font: 800 12px/1 'Inter', 'PingFang SC', sans-serif;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.ai-auto-toggle:hover {
+  filter: brightness(1.2);
+  transform: translateY(-1px);
+}
+.ai-auto-toggle.on {
+  background: linear-gradient(135deg, #c084fc, #7e22ce);
+  color: #fff;
+  border-color: #a855f7;
+  box-shadow: 0 0 18px rgba(168,85,247,.55), 0 3px 0 #581c87;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+.ai-auto-toggle .auto-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.4);
+  transition: all 0.2s ease;
+}
+.ai-auto-toggle.on .auto-dot {
+  background: #fff;
+  box-shadow: 0 0 10px #fff;
+  animation: autoDotPulse 1s ease-in-out infinite;
+}
+@keyframes autoDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.85); }
 }
 
 /* 排序图标按钮（紧凑） */
