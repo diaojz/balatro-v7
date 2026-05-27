@@ -166,45 +166,36 @@ defineExpose({ cardRefs, aiBtnRef })
   transition: transform calc(0.55s * var(--anim-scale, 1)) cubic-bezier(.34, 1.36, .64, 1);
 }
 
-/* v7.27：理牌动效改斗地主风格 — 每张牌依次（错峰 60ms）下沉收拢 → 升起回位
-   sort 已在 JS 中完成（hand 数组已是新顺序），所以"升起"时牌已在新位置 */
+/* v7.30：理牌动效改'从左到右依次展开'（斗地主风格） — 牌从左侧外飞入，从左到右串联
+   sort 已在 JS 中完成（hand 数组已是新顺序），所以飞入时牌已在新位置 */
 .hand-cards.is-sorting .playing-card {
   /* 关闭 TransitionGroup move，让 animation 接管 */
   transition: none !important;
-  animation: cardReshuffle calc(0.7s * var(--anim-scale, 1)) ease-in-out forwards;
+  animation: cardSweepIn calc(0.5s * var(--anim-scale, 1)) cubic-bezier(.34, 1.5, .64, 1) backwards;
 }
+/* 每张错峰 80ms，第 1 张最先飞入 → 第 8 张最后 */
 .hand-cards.is-sorting .playing-card:nth-child(1) { animation-delay: 0ms; }
-.hand-cards.is-sorting .playing-card:nth-child(2) { animation-delay: 60ms; }
-.hand-cards.is-sorting .playing-card:nth-child(3) { animation-delay: 120ms; }
-.hand-cards.is-sorting .playing-card:nth-child(4) { animation-delay: 180ms; }
-.hand-cards.is-sorting .playing-card:nth-child(5) { animation-delay: 240ms; }
-.hand-cards.is-sorting .playing-card:nth-child(6) { animation-delay: 300ms; }
-.hand-cards.is-sorting .playing-card:nth-child(7) { animation-delay: 360ms; }
-.hand-cards.is-sorting .playing-card:nth-child(8) { animation-delay: 420ms; }
+.hand-cards.is-sorting .playing-card:nth-child(2) { animation-delay: 80ms; }
+.hand-cards.is-sorting .playing-card:nth-child(3) { animation-delay: 160ms; }
+.hand-cards.is-sorting .playing-card:nth-child(4) { animation-delay: 240ms; }
+.hand-cards.is-sorting .playing-card:nth-child(5) { animation-delay: 320ms; }
+.hand-cards.is-sorting .playing-card:nth-child(6) { animation-delay: 400ms; }
+.hand-cards.is-sorting .playing-card:nth-child(7) { animation-delay: 480ms; }
+.hand-cards.is-sorting .playing-card:nth-child(8) { animation-delay: 560ms; }
 
-@keyframes cardReshuffle {
+@keyframes cardSweepIn {
   0%   {
-    transform: translateY(0) scale(1) rotate(0);
-    opacity: 1;
-    box-shadow: 0 4px 0 rgba(0,0,0,.5);
-  }
-  30%  {
-    transform: translateY(70px) scale(0.55) rotate(-14deg);
+    transform: translateX(-220px) scale(0.5) rotate(-15deg);
     opacity: 0;
     box-shadow: 0 0 0 rgba(0,0,0,0);
   }
-  55%  {
-    transform: translateY(70px) scale(0.55) rotate(10deg);
-    opacity: 0;
-    box-shadow: 0 0 0 rgba(0,0,0,0);
-  }
-  85%  {
-    transform: translateY(-8px) scale(1.05) rotate(0);
+  60%  {
+    transform: translateX(0) scale(1.12) translateY(-12px) rotate(2deg);
     opacity: 1;
-    box-shadow: 0 10px 0 rgba(0,0,0,.4), 0 0 16px rgba(77,214,255,.5);
+    box-shadow: 0 12px 0 rgba(0,0,0,.4), 0 0 20px rgba(77,214,255,.7);
   }
   100% {
-    transform: translateY(0) scale(1) rotate(0);
+    transform: translateX(0) scale(1) translateY(0) rotate(0);
     opacity: 1;
     box-shadow: 0 4px 0 rgba(0,0,0,.5);
   }
