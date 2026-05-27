@@ -1,10 +1,19 @@
 <template>
   <!-- 第 3 段：手牌 + 按钮 -->
   <section class="hand-area">
-    <!-- 标题行 -->
+    <!-- 标题行（v7.9：AI 全自动 toggle 挪到标题行最右，不再占按钮区高度撑爆段） -->
     <div class="hand-header">
       <span class="hand-title">手牌</span>
       <span class="hand-count">已选 {{ selectedCount }} / 5 张</span>
+      <button
+        class="ai-auto-toggle"
+        :class="{ on: aiAutoMode }"
+        @click="$emit('toggle-auto')"
+        :title="aiAutoMode ? '点击关闭 AI 全自动托管' : '点击开启 AI 全自动托管'"
+      >
+        <span class="auto-dot"></span>
+        <span class="auto-label">{{ aiAutoMode ? '全自动 ON' : '全自动 OFF' }}</span>
+      </button>
     </div>
 
     <!-- 手牌横排 -->
@@ -64,18 +73,8 @@
         </button>
       </div>
 
-      <!-- 右：AI 全自动 toggle（上）+ AI 出牌（下） -->
+      <!-- 右：AI 出牌（v7.9：toggle 已挪到标题行，这里只剩单按钮） -->
       <div class="btn-right">
-        <!-- v7.7：AI 全自动快捷开关，跟设置面板同步 -->
-        <button
-          class="ai-auto-toggle"
-          :class="{ on: aiAutoMode }"
-          @click="$emit('toggle-auto')"
-          :title="aiAutoMode ? '点击关闭 AI 全自动托管' : '点击开启 AI 全自动托管'"
-        >
-          <span class="auto-dot"></span>
-          <span class="auto-label">{{ aiAutoMode ? '全自动 ON' : '全自动 OFF' }}</span>
-        </button>
         <AIButton
           v-if="gameState === 'playing'"
           :disabled="hand.length === 0"
@@ -131,6 +130,10 @@ defineExpose({ cardRefs, aiBtnRef })
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+}
+/* v7.9：让全自动 toggle 推到标题行最右 */
+.hand-header .ai-auto-toggle {
+  margin-left: auto;
 }
 .hand-title {
   font: 700 14px/1 var(--sans);
@@ -196,10 +199,8 @@ defineExpose({ cardRefs, aiBtnRef })
 }
 .btn-right {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 /* v7.7：AI 全自动快捷 toggle 按钮 */
