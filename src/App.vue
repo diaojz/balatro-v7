@@ -521,19 +521,22 @@ function spawnJokerFlyText(jokerId, deltaChips, deltaMult, beforeMult, afterMult
 
   const animScale = getAnimScale()
   el.textContent = text
-  // v7.2：飞字起点上移 28px（避免被 Joker 段 padding-top 切到），改用更大字号 + 黑色描边更显眼
+  // v7.10：Joker 飞字更大更显眼（36px + 全方位黑描边 + 双层橙色发光）
   el.style.cssText = `
     position: fixed;
     left: ${rect.left + rect.width / 2}px;
-    top: ${rect.top - 28}px;
+    top: ${rect.top - 36}px;
     transform: translateX(-50%);
-    font: 900 22px/1 Inter, sans-serif;
+    font: 900 36px/1 Inter, sans-serif;
+    letter-spacing: 1px;
     color: #ff8844;
     pointer-events: none;
     z-index: 999;
-    text-shadow: 0 2px 0 #000, 0 0 12px rgba(255,136,68,.9);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      0 0 16px rgba(255,136,68,.95), 0 0 32px rgba(255,136,68,.6);
     white-space: nowrap;
-    animation: flyTextUp ${0.7 * animScale}s ease-out forwards;
+    animation: flyTextUp ${0.8 * animScale}s ease-out forwards;
   `
   document.body.appendChild(el)
   setTimeout(() => el.remove(), 700 * animScale)

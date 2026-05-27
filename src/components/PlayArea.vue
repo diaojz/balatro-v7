@@ -175,19 +175,25 @@ function suitColor(suit) {
   line-height: 1;
 }
 
-/* 飞字 */
+/* v7.10：飞字放大 + 黑色描边 + 发光，看清楚加分 */
 .fly-text {
   position: absolute;
-  top: -8px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  font: 700 16px/1 var(--sans);
+  font: 900 36px/1 var(--sans);
   pointer-events: none;
   z-index: 10;
   white-space: nowrap;
-  animation: flyTextUp calc(0.6s * var(--anim-scale)) ease-out forwards;
+  letter-spacing: 1px;
+  animation: flyTextUp calc(0.7s * var(--anim-scale)) ease-out forwards;
 }
-.chips-fly { color: #4dd6ff; }
+.chips-fly {
+  color: #4dd6ff;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+    0 0 16px rgba(77,214,255,.9), 0 0 32px rgba(77,214,255,.6);
+}
 
 /* v7.1：计分公式 inline 显示（在牌上方），不再 absolute */
 .formula-inline {
