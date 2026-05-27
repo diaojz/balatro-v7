@@ -173,7 +173,7 @@ let blindToastTimer = null
 function showBlindToast() {
   const blind = BLINDS[blindIndex.value]
   if (!blind) return
-  blindToastText.value = `Ante ${blind.ante} · 第 ${blindIndex.value + 1}/${TOTAL_BLINDS} 关 · ${blind.name} · 目标 ${blind.target}`
+  blindToastText.value = `第 ${blind.ante} 轮 · 关 ${blindIndex.value + 1}/${TOTAL_BLINDS} · ${blind.name} · 目标 ${blind.target}`
   if (blindToastTimer) clearTimeout(blindToastTimer)
   blindToastTimer = setTimeout(() => { blindToastText.value = '' }, 2000)
 }
@@ -521,22 +521,25 @@ function spawnJokerFlyText(jokerId, deltaChips, deltaMult, beforeMult, afterMult
 
   const animScale = getAnimScale()
   el.textContent = text
-  // v7.13：Joker 飞字缩到 48px（v7.12 72 太大），保留厚描边 + 强发光
+  // v7.14：Joker 飞字缩到 28px + 位置贴卡顶下方（不溢出 viewport），不再遮挡 Joker 卡名/描述
+  // Joker 段高 250，卡贴段底，卡顶 y ≈ 50px。飞字 48px 太大遮挡卡顶 + 飘出 viewport
+  // 现在飞字 28px + top 设为卡顶 + 4（贴卡 name-bar 上方），仅短上飞
+  const safeTop = Math.max(rect.top - 24, 4)
   el.style.cssText = `
     position: fixed;
     left: ${rect.left + rect.width / 2}px;
-    top: ${rect.top - 48}px;
+    top: ${safeTop}px;
     transform: translateX(-50%);
-    font: 900 48px/1 Inter, sans-serif;
-    letter-spacing: 2px;
+    font: 900 28px/1 Inter, sans-serif;
+    letter-spacing: 1.5px;
     color: #ff8844;
     pointer-events: none;
     z-index: 999;
     text-shadow:
       -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
-      0 0 18px rgba(255,136,68,1), 0 0 36px rgba(255,136,68,.7);
+      0 0 12px rgba(255,136,68,1), 0 0 24px rgba(255,136,68,.7);
     white-space: nowrap;
-    animation: flyTextUp ${0.8 * animScale}s ease-out forwards;
+    animation: flyTextUp ${0.7 * animScale}s ease-out forwards;
   `
   document.body.appendChild(el)
   setTimeout(() => el.remove(), 700 * animScale)
