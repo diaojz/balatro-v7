@@ -7,7 +7,7 @@
 
     <!-- 2. 盲注大面板（v7.11：含 Ante + 关数 信息） -->
     <div class="sb-panel blind-panel">
-      <div class="ante-badge">第 {{ blind?.ante ?? 1 }} 轮 / 共 {{ totalAntes }} 轮</div>
+      <div class="ante-badge">底注 {{ blind?.ante ?? 1 }} / 共 {{ totalAntes }} 底注</div>
       <div class="hud-label">第 {{ blindIndex + 1 }} / {{ totalBlinds }} 关</div>
       <div class="blind-main">
         <span class="blind-icon">{{ blind.icon }}</span>

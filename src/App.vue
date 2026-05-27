@@ -173,7 +173,7 @@ let blindToastTimer = null
 function showBlindToast() {
   const blind = BLINDS[blindIndex.value]
   if (!blind) return
-  blindToastText.value = `第 ${blind.ante} 轮 · 关 ${blindIndex.value + 1}/${TOTAL_BLINDS} · ${blind.name} · 目标 ${blind.target}`
+  blindToastText.value = `底注 ${blind.ante} · 第 ${blindIndex.value + 1}/${TOTAL_BLINDS} 关 · ${blind.name} · 目标 ${blind.target}`
   if (blindToastTimer) clearTimeout(blindToastTimer)
   blindToastTimer = setTimeout(() => { blindToastText.value = '' }, 2000)
 }
