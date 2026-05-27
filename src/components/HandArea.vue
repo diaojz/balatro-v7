@@ -166,17 +166,48 @@ defineExpose({ cardRefs, aiBtnRef })
   transition: transform calc(0.55s * var(--anim-scale, 1)) cubic-bezier(.34, 1.36, .64, 1);
 }
 
-/* v7.25：排序瞬间，所有牌短暂蓝色发光 + 微微上浮再回落 */
+/* v7.27：理牌动效改斗地主风格 — 每张牌依次（错峰 60ms）下沉收拢 → 升起回位
+   sort 已在 JS 中完成（hand 数组已是新顺序），所以"升起"时牌已在新位置 */
 .hand-cards.is-sorting .playing-card {
-  animation: cardSortPulse calc(0.6s * var(--anim-scale, 1)) ease-out;
+  /* 关闭 TransitionGroup move，让 animation 接管 */
+  transition: none !important;
+  animation: cardReshuffle calc(0.7s * var(--anim-scale, 1)) ease-in-out forwards;
 }
-@keyframes cardSortPulse {
-  0%   { box-shadow: 0 4px 0 rgba(0,0,0,.5); transform: translateY(0); }
-  35%  {
-    box-shadow: 0 10px 0 rgba(0,0,0,.5), 0 0 28px rgba(77,214,255,.95), 0 0 12px rgba(77,214,255,.7);
-    transform: translateY(-12px);
+.hand-cards.is-sorting .playing-card:nth-child(1) { animation-delay: 0ms; }
+.hand-cards.is-sorting .playing-card:nth-child(2) { animation-delay: 60ms; }
+.hand-cards.is-sorting .playing-card:nth-child(3) { animation-delay: 120ms; }
+.hand-cards.is-sorting .playing-card:nth-child(4) { animation-delay: 180ms; }
+.hand-cards.is-sorting .playing-card:nth-child(5) { animation-delay: 240ms; }
+.hand-cards.is-sorting .playing-card:nth-child(6) { animation-delay: 300ms; }
+.hand-cards.is-sorting .playing-card:nth-child(7) { animation-delay: 360ms; }
+.hand-cards.is-sorting .playing-card:nth-child(8) { animation-delay: 420ms; }
+
+@keyframes cardReshuffle {
+  0%   {
+    transform: translateY(0) scale(1) rotate(0);
+    opacity: 1;
+    box-shadow: 0 4px 0 rgba(0,0,0,.5);
   }
-  100% { box-shadow: 0 4px 0 rgba(0,0,0,.5); transform: translateY(0); }
+  30%  {
+    transform: translateY(70px) scale(0.55) rotate(-14deg);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+  55%  {
+    transform: translateY(70px) scale(0.55) rotate(10deg);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+  85%  {
+    transform: translateY(-8px) scale(1.05) rotate(0);
+    opacity: 1;
+    box-shadow: 0 10px 0 rgba(0,0,0,.4), 0 0 16px rgba(77,214,255,.5);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0);
+    opacity: 1;
+    box-shadow: 0 4px 0 rgba(0,0,0,.5);
+  }
 }
 
 .card-corner {

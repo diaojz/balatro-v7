@@ -167,16 +167,16 @@ const jokerHitCardIds = ref([])
 // 商店 AI 高亮
 const shopAIHighlight = ref(null)
 
-// v7.25：理牌动效标记（dealCards 末尾自动排序 / 手动点排序按钮触发）
+// v7.27：理牌动效（斗地主风格）—— 每张依次下沉隐藏再升起回位
+// 总时长 = 最后一张 delay 420ms + 动画 700ms = 1120ms
 const isSorting = ref(false)
 let sortingTimer = null
 function triggerSortingAnim() {
   isSorting.value = false
-  // 下一帧再设 true → 让动画重启（避免连续触发不重新播）
   requestAnimationFrame(() => {
     isSorting.value = true
     if (sortingTimer) clearTimeout(sortingTimer)
-    sortingTimer = setTimeout(() => { isSorting.value = false }, 700 * getAnimScale())
+    sortingTimer = setTimeout(() => { isSorting.value = false }, 1200 * getAnimScale())
   })
 }
 
