@@ -111,7 +111,7 @@ defineExpose({ cardRefs, aiBtnRef })
 .hand-area {
   display: flex;
   flex-direction: column;
-  padding: 56px 16px 12px; /* v7.1：padding-top 56px 给选中上移 -22px + scale 留余量，overflow visible 保证选中态不被切 */
+  padding: 32px 16px 12px; /* v7.3：padding-top 56→32 节省顶部空白，依靠 overflow visible 让选中态不被切 */
   overflow: visible;
 }
 
@@ -218,19 +218,19 @@ defineExpose({ cardRefs, aiBtnRef })
   letter-spacing: 0.5px;
 }
 
-/* 出牌按钮：特大居中 */
+/* 出牌按钮：特大居中（v7.3 紧凑：68→60） */
 .big-play {
-  min-width: 280px;
-  min-height: 68px;
-  font-size: 22px;
+  min-width: 260px;
+  min-height: 60px;
+  font-size: 20px;
   letter-spacing: 3px;
-  padding: 18px 36px;
+  padding: 14px 32px;
 }
-/* 弃牌：中等 */
+/* 弃牌：中等（v7.3 紧凑：50→46） */
 .mid-discard {
-  min-width: 220px;
-  min-height: 50px;
-  font-size: 15px;
-  padding: 12px 24px;
+  min-width: 200px;
+  min-height: 46px;
+  font-size: 14px;
+  padding: 10px 22px;
 }
 </style>

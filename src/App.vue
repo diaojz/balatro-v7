@@ -595,8 +595,8 @@ function handleBuy(jokerId) {
   shopAIHighlight.value = null
 }
 
-// ===== 商店：跳过 =====
-function handleSkip() {
+// ===== 商店：跳过（v7.3 改 async 让 AI 全自动循环能 await 等发牌完成） =====
+async function handleSkip() {
   const nextIndex = blindIndex.value + 1
   if (nextIndex >= BLINDS.length) {
     gameState.value = 'won'
@@ -618,9 +618,9 @@ function handleSkip() {
   hand.value = []
   selectedIds.value = new Set()
   gameState.value = 'playing'
-  dealCards(HAND_SIZE)
   // v7.2：新一关开始 toast（第 2 / 第 3 关）
   showBlindToast()
+  await dealCards(HAND_SIZE) // 等所有牌发完
 }
 
 // ===== 重新开始 =====
@@ -635,39 +635,59 @@ function handleSettingsUpdate(newSettings) {
   applyAnimScale(newSettings.animSpeed)
 }
 
-// ===== v7.2 AI 全自动托管模式 =====
-// 触发条件：settings.aiAutoMode === true 且 gameState 进入新状态时
-// playing 状态 → 思考 800ms 后自动 handleAIPlay
-// shop 状态 → 1s 后自动 handleSkip（不买，简化逻辑）
+// ===== v7.3 AI 全自动托管：while loop 不暂停 + 每手充足停顿让用户看清动效 =====
+// 节奏：起手 800ms → 出牌（含动画 ~3s）→ 出完停 1.4s 看结果 → 下一手
+//       商店停 2s 让看清 → 自动跳过 → 下一关
+//       won/lost 自动退出循环
 let aiAutoBusy = false
 async function aiAutoStep() {
   if (!settings.value.aiAutoMode) return
   if (aiAutoBusy) return
-  if (isPlaying) return
   aiAutoBusy = true
 
-  await new Promise(r => setTimeout(r, 600))
-  // 中途用户可能关了开关
-  if (!settings.value.aiAutoMode) { aiAutoBusy = false; return }
+  try {
+    while (settings.value.aiAutoMode) {
+      // 起步停顿：让用户看清状态切换
+      await new Promise(r => setTimeout(r, 800))
+      if (!settings.value.aiAutoMode) break
 
-  if (gameState.value === 'playing' && hand.value.length > 0 && !isPlaying) {
-    await handleAIPlay()
-  } else if (gameState.value === 'shop') {
-    await new Promise(r => setTimeout(r, 400))
-    if (settings.value.aiAutoMode && gameState.value === 'shop') {
-      handleSkip()
+      // 上一手还没结束 → 等一下
+      if (isPlaying) {
+        await new Promise(r => setTimeout(r, 400))
+        continue
+      }
+
+      if (gameState.value === 'playing' && hand.value.length > 0) {
+        await handleAIPlay()
+        // 出完一手停 1.4s 让玩家看清计分公式 + Joker 触发 + blindScore 跳动
+        await new Promise(r => setTimeout(r, 1400))
+      } else if (gameState.value === 'shop') {
+        // 商店停留 2s 看清商店内容（3 张 Joker + 价格）
+        await new Promise(r => setTimeout(r, 2000))
+        if (settings.value.aiAutoMode && gameState.value === 'shop') {
+          await handleSkip()
+          // 等关卡 toast + dealCards 完成
+          await new Promise(r => setTimeout(r, 800))
+        }
+      } else {
+        // won / lost → 退出循环
+        break
+      }
     }
+  } finally {
+    aiAutoBusy = false
   }
-
-  aiAutoBusy = false
 }
 
-// watch gameState 变化 + aiAutoMode 开启 → 触发 AI 步骤
-watch([gameState, () => settings.value.aiAutoMode, () => hand.value.length], () => {
-  if (settings.value.aiAutoMode && (gameState.value === 'playing' || gameState.value === 'shop')) {
+// watch aiAutoMode 开启 + gameState 重置（重新开始）→ 触发 AI 步骤
+watch(() => settings.value.aiAutoMode, (newVal) => {
+  if (newVal) aiAutoStep()
+})
+watch(gameState, (newState, oldState) => {
+  if (settings.value.aiAutoMode && newState === 'playing' && oldState !== 'playing') {
     aiAutoStep()
   }
-}, { flush: 'post' })
+})
 
 onMounted(() => {
   applyAnimScale(settings.value.animSpeed)
@@ -686,19 +706,20 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7.2 调整：Joker 段 260（容 padding-top 32 + 卡 200 + padding-bottom 12 + triggering 上移余量）；
-     手牌段 400（容方案 C 中央竖排 出牌特大+弃牌 的高度 ≈ 132）；出牌 1fr 吸收剩余 */
-  grid-template-rows: 260px 1fr 400px;
+  /* v7.3 调整：手牌段 400→340（减少底部红框空白，让出牌段占更多空间）
+     Joker 260 不变（保 triggering 上移空间）；出牌 1fr 吸收剩余，公式+牌组贴顶 */
+  grid-template-rows: 260px 1fr 340px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;
 }
 
-/* v7.2 关卡切换 toast — 屏幕中央 1.8s 闪 */
+/* v7.3 关卡切换 toast — 居中于右主区（不是 viewport），避开左 sidebar 视觉偏左 */
 .blind-toast {
   position: fixed;
   top: 30%;
-  left: 50%;
+  /* sidebar 占 min(28vw, 480px)，右主区中心 ≈ sidebar 宽度 + (剩余宽度 / 2) ≈ 50% + sidebar/2 */
+  left: calc(50% + min(14vw, 240px));
   transform: translate(-50%, -50%);
   background: linear-gradient(135deg, rgba(255,209,102,.95), rgba(245,158,11,.95));
   color: #1a1a1a;

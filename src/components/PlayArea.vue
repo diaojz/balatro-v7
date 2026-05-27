@@ -124,12 +124,13 @@ function suitColor(suit) {
 
 .play-cards {
   display: flex;
-  flex-direction: column; /* v7.1：竖排 → 公式在上 / 牌在下 */
-  align-items: center;     /* 水平居中 */
-  justify-content: center; /* 垂直居中 */
+  flex-direction: column;     /* v7.1：竖排 → 公式在上 / 牌在下 */
+  align-items: center;        /* 水平居中 */
+  justify-content: flex-start; /* v7.3：贴顶（之前 center 让空白居中浪费 → 现在空白集中底部，由 1fr grid 自然吸收） */
   gap: 18px;
   flex: 1;
   min-height: 0;
+  padding-top: 8px;
 }
 
 .empty-hint {
