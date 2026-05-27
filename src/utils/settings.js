@@ -22,7 +22,8 @@ export function loadSettings() {
   try {
     const raw = localStorage.getItem(LS_KEY)
     if (raw) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }
+      // v7.15：aiAutoMode 不从 localStorage 恢复（永远默认 false，每次刷新都是关）
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(raw), aiAutoMode: false }
     }
   } catch {
     // 解析失败时静默返回默认值
@@ -32,7 +33,9 @@ export function loadSettings() {
 
 export function saveSettings(settings) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(settings))
+    // v7.15：保存时排除 aiAutoMode，避免上次开启的托管状态影响下次启动
+    const { aiAutoMode: _, ...persistent } = settings
+    localStorage.setItem(LS_KEY, JSON.stringify(persistent))
   } catch {
     // localStorage 写失败时静默忽略
   }
