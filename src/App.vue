@@ -267,11 +267,11 @@ async function dealCards(count) {
     if (idx !== -1) hand.value[idx] = { ...hand.value[idx], dealing: false }
   }
 
-  // v7.2：await 所有飞牌完成 + 自动按点排序（avoid AI 全自动连击时上一手动画未结束）
+  // v7.2：await 所有飞牌完成 + v7.4 自动按点降序排序（大牌在左 A→2）
   if (drawn.length > 0) {
     const totalDuration = (drawn.length - 1) * 60 + 400 * getAnimScale() + 80
     await new Promise(r => setTimeout(r, totalDuration))
-    hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank))
+    hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank))
   }
 }
 
@@ -359,15 +359,16 @@ function toggleSelect(cardId) {
 const RANK_ORDER = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
 const SUIT_ORDER = ['♠','♥','♦','♣']
 
+// v7.4：按点排序改为降序（大牌在左，A K Q J 10 ... 2）
 function sortByRank() {
-  hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank))
+  hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank))
   selectedIds.value = new Set()
 }
 function sortBySuit() {
   hand.value = [...hand.value].sort((a, b) => {
     const si = SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit)
     if (si !== 0) return si
-    return RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank)
+    return RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank) // 同花色内大牌在左
   })
   selectedIds.value = new Set()
 }
