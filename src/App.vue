@@ -287,12 +287,13 @@ async function dealCards(count) {
   }
 
   // v7.2：await 所有飞牌完成 + v7.4 自动按点降序排序（大牌在左 A→2）
+  // v7.33：去掉 triggerSortingAnim，让 TransitionGroup .hand-sort-move 平滑过渡即可
+  //        避免「发牌飞入 + cardCasinoSweep 飞入」两次动画串视觉不顺畅
+  //        手动点排序按钮仍走 sortByRankWithAnim（保留炫酷飞入特效）
   if (drawn.length > 0) {
     const totalDuration = (drawn.length - 1) * 60 + 400 * getAnimScale() + 80
     await new Promise(r => setTimeout(r, totalDuration))
     hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank))
-    // v7.25：理牌动效（蓝光闪 + TransitionGroup 平滑滑动）
-    triggerSortingAnim()
   }
 }
 
