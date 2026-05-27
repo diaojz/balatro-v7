@@ -474,21 +474,22 @@ async function handlePlay() {
       const deltaChips = currentChips - before.chips
       spawnJokerFlyText(joker.id, deltaChips, deltaMult, before.mult, currentMult)
 
-      // v7.26：让命中的牌依次炸裂（每张错峰 180ms）
-      jokerHitCardIds.value = []
+      // v7.28：让命中的牌依次"敲击"（每张 400ms 节奏，参考官方 Balatro），单张闪现不重叠
       const matchedIds = typeof joker.matchCards === 'function'
         ? joker.matchCards(selected, handType.name)
         : []
       for (const cardId of matchedIds) {
-        jokerHitCardIds.value = [...jokerHitCardIds.value, cardId]
-        await delay(180)
+        // 单张当前敲击：清空数组只留当前牌（CSS animation 只播一次）
+        jokerHitCardIds.value = [cardId]
+        await delay(400)
       }
+      // 全部敲完后清，确保最后一张动画播完
+      jokerHitCardIds.value = []
 
       // 等剩余时间（保证 Joker 触发整体节奏不少于 800ms）
-      const matchedDuration = matchedIds.length * 180
+      const matchedDuration = matchedIds.length * 400
       if (matchedDuration < 800) await delay(800 - matchedDuration)
 
-      jokerHitCardIds.value = []
       triggeringJokerIds.value = []
       await delay(100)
     }

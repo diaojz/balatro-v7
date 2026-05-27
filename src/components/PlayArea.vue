@@ -198,9 +198,10 @@ function suitColor(suit) {
 .played { cursor: default; }
 .played:hover { transform: none; }
 
-/* v7.26：被 Joker 命中的牌 — 炸裂特效（缩放 + 旋转 + 多层金色发光 + 滤镜爆炸） */
+/* v7.28：被 Joker 命中的牌 — 快速敲击式特效（脆+猛，0.35s 单张敲一下）
+   节奏与 App.vue 每张 400ms 间隔同步，让"3 张梅花依次响应"看得清清楚楚 */
 .playing-card.played.joker-hit {
-  animation: jokerHitExplosion calc(0.7s * var(--anim-scale, 1)) cubic-bezier(.34, 1.56, .64, 1);
+  animation: jokerHitExplosion calc(0.35s * var(--anim-scale, 1)) cubic-bezier(.22, 1.5, .42, 1);
   z-index: 5;
 }
 @keyframes jokerHitExplosion {
@@ -209,73 +210,63 @@ function suitColor(suit) {
     box-shadow: 0 4px 0 rgba(0,0,0,.5);
     filter: brightness(1) saturate(1);
   }
-  18%  {
-    transform: scale(1.32) translateY(-28px) rotate(-4deg);
+  35%  {
+    /* 高潮：scale 1.5 + 上跳 36px + 多层金边 + 强发光 + 滤镜爆 */
+    transform: scale(1.5) translateY(-36px) rotate(-6deg);
     box-shadow:
-      0 0 0 4px rgba(255,209,102,1),
-      0 0 36px rgba(255,209,102,.95),
-      0 0 72px rgba(255,209,102,.7),
-      0 0 120px rgba(255,200,87,.45);
-    filter: brightness(1.6) saturate(1.5) drop-shadow(0 0 12px gold);
-  }
-  45%  {
-    transform: scale(1.18) translateY(-18px) rotate(3deg);
-    box-shadow:
-      0 0 0 3px rgba(255,209,102,.8),
-      0 0 28px rgba(255,209,102,.8),
-      0 0 56px rgba(255,209,102,.5);
-    filter: brightness(1.3) saturate(1.3);
-  }
-  75%  {
-    transform: scale(1.08) translateY(-8px) rotate(-1deg);
-    box-shadow: 0 6px 0 rgba(0,0,0,.5), 0 0 16px rgba(255,209,102,.6);
-    filter: brightness(1.1);
+      0 0 0 5px rgba(255,209,102,1),
+      0 0 0 9px rgba(255,209,102,.55),
+      0 0 48px rgba(255,209,102,1),
+      0 0 96px rgba(255,209,102,.7),
+      0 0 160px rgba(255,200,87,.4);
+    filter: brightness(1.8) saturate(1.7) drop-shadow(0 0 16px gold);
   }
   100% {
+    /* 立刻回落（脆感） */
     transform: scale(1) translateY(0) rotate(0);
     box-shadow: 0 4px 0 rgba(0,0,0,.5);
     filter: none;
   }
 }
 
-/* v7.26：粒子爆炸装饰（伪元素）— 命中瞬间从牌中心放射出 8 道金光 */
+/* v7.28：粒子爆炸（伪元素）— 8 道金光放射，0.4s 内完成 */
 .playing-card.played.joker-hit::before {
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  width: 6px; height: 6px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: radial-gradient(circle, gold, transparent 70%);
   transform: translate(-50%, -50%);
-  animation: hitBurst calc(0.7s * var(--anim-scale, 1)) ease-out forwards;
+  animation: hitBurst calc(0.4s * var(--anim-scale, 1)) ease-out forwards;
   pointer-events: none;
   z-index: -1;
 }
 @keyframes hitBurst {
   0%   { opacity: 0; box-shadow: 0 0 0 0 gold; }
-  20%  {
+  30%  {
     opacity: 1;
     box-shadow:
-      0   -40px 0 4px gold,
-      28  -28px 0 4px #ffd166,
-      40    0  0 4px gold,
-      28   28px 0 4px #ffd166,
-      0    40px 0 4px gold,
-      -28  28px 0 4px #ffd166,
-      -40   0  0 4px gold,
-      -28 -28px 0 4px #ffd166;
+      0   -45px 0 5px gold,
+      32  -32px 0 5px #ffd166,
+      45    0  0 5px gold,
+      32   32px 0 5px #ffd166,
+      0    45px 0 5px gold,
+      -32  32px 0 5px #ffd166,
+      -45   0  0 5px gold,
+      -32 -32px 0 5px #ffd166;
   }
   100% {
     opacity: 0;
     box-shadow:
-      0   -80px 0 0 gold,
-      56  -56px 0 0 #ffd166,
-      80    0  0 0 gold,
-      56   56px 0 0 #ffd166,
-      0    80px 0 0 gold,
-      -56  56px 0 0 #ffd166,
-      -80   0  0 0 gold,
-      -56 -56px 0 0 #ffd166;
+      0   -100px 0 0 gold,
+      70  -70px  0 0 #ffd166,
+      100   0    0 0 gold,
+      70   70px  0 0 #ffd166,
+      0    100px 0 0 gold,
+      -70  70px  0 0 #ffd166,
+      -100  0    0 0 gold,
+      -70 -70px  0 0 #ffd166;
   }
 }
 
