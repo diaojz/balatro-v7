@@ -10,7 +10,7 @@
       <div class="ante-badge">底注 {{ blind?.ante ?? 1 }} / 共 {{ totalAntes }} 底注</div>
       <div class="hud-label">第 {{ blindIndex + 1 }} / {{ totalBlinds }} 关</div>
       <div class="blind-main">
-        <span class="blind-icon">{{ blind.icon }}</span>
+        <PokerChip :variant="blind.chip || 'blue'" :size="36" />
         <span class="blind-name">{{ blind.name }}</span>
       </div>
       <div class="hud-label" style="margin-top:8px">目标分</div>
@@ -90,6 +90,7 @@
 import { ref, computed, watch } from 'vue'
 import { STARTING_HANDS } from '../config/constants.js'
 import { TOTAL_BLINDS, TOTAL_ANTES } from '../config/blinds.js'
+import PokerChip from './PokerChip.vue'
 
 const props = defineProps({
   blindIndex: Number,
@@ -211,10 +212,9 @@ const rewardPreview = computed(() => {
 .blind-panel .blind-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 6px 0 4px;
 }
-.blind-icon { font-size: 20px; }
 .blind-name {
   font: 700 18px/1 var(--sans);
   color: var(--text);
