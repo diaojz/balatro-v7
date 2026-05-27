@@ -32,35 +32,47 @@
       </div>
     </div>
 
-    <!-- 按钮行，右边留 130px 给牌堆（PRD §4.3） -->
+    <!-- v7.2：方案 C 三栏 grid 布局 — 左排序图标 / 中央竖排 出牌特大+弃牌 / 右 AI -->
     <div class="btn-row">
-      <button
-        class="px-btn px-btn-play"
-        :disabled="selectedCount === 0 || gameState !== 'playing'"
-        @click="$emit('play')"
-      >
-        出牌 ({{ selectedCount }})
-      </button>
-      <button
-        class="px-btn px-btn-discard"
-        :disabled="selectedCount === 0 || discardsLeft <= 0 || gameState !== 'playing'"
-        @click="$emit('discard')"
-      >
-        弃牌 ({{ discardsLeft }})
-      </button>
-      <button class="px-btn px-btn-sort" @click="$emit('sort-by-rank')">
-        按点排序
-      </button>
-      <button class="px-btn px-btn-sort" @click="$emit('sort-by-suit')">
-        按花排序
-      </button>
-      <!-- AI 出牌按钮：对局中显示 -->
-      <AIButton
-        v-if="gameState === 'playing'"
-        :disabled="hand.length === 0"
-        @ai-play="$emit('ai-play')"
-        ref="aiBtnRef"
-      />
+      <!-- 左：排序图标按钮（紧凑） -->
+      <div class="btn-left">
+        <button class="sort-icon-btn" title="按点排序" @click="$emit('sort-by-rank')">
+          <span class="sort-icon-symbol">⇅</span>
+          <span class="sort-icon-label">点</span>
+        </button>
+        <button class="sort-icon-btn" title="按花排序" @click="$emit('sort-by-suit')">
+          <span class="sort-icon-symbol">♥</span>
+          <span class="sort-icon-label">花</span>
+        </button>
+      </div>
+
+      <!-- 中：出牌（特大）+ 弃牌（中等）竖排 -->
+      <div class="btn-center">
+        <button
+          class="px-btn px-btn-play big-play"
+          :disabled="selectedCount === 0 || gameState !== 'playing'"
+          @click="$emit('play')"
+        >
+          出牌 ({{ selectedCount }})
+        </button>
+        <button
+          class="px-btn px-btn-discard mid-discard"
+          :disabled="selectedCount === 0 || discardsLeft <= 0 || gameState !== 'playing'"
+          @click="$emit('discard')"
+        >
+          弃牌 ({{ discardsLeft }})
+        </button>
+      </div>
+
+      <!-- 右：AI 出牌 -->
+      <div class="btn-right">
+        <AIButton
+          v-if="gameState === 'playing'"
+          :disabled="hand.length === 0"
+          @ai-play="$emit('ai-play')"
+          ref="aiBtnRef"
+        />
+      </div>
     </div>
   </section>
 </template>
@@ -149,12 +161,76 @@ defineExpose({ cardRefs, aiBtnRef })
   line-height: 1;
 }
 
+/* v7.2：方案 C 三栏 grid — 出牌按钮居中视觉权重最大 */
 .btn-row {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
   align-items: center;
-  padding-right: 130px; /* 给牌堆腾位置 */
-  flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 12px;
+  padding: 0 8px;
+}
+.btn-left {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+}
+.btn-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.btn-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* 排序图标按钮（紧凑） */
+.sort-icon-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(99,102,241,.28), rgba(67,56,202,.20));
+  border: 2px solid rgba(129,140,248,.55);
+  color: #e0e7ff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 0 rgba(67,56,202,.4);
+}
+.sort-icon-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15) saturate(1.15);
+}
+.sort-icon-btn:active {
+  transform: translateY(2px);
+}
+.sort-icon-symbol { font-size: 20px; line-height: 1; }
+.sort-icon-label {
+  font: 800 11px/1 'Inter', 'PingFang SC', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* 出牌按钮：特大居中 */
+.big-play {
+  min-width: 280px;
+  min-height: 68px;
+  font-size: 22px;
+  letter-spacing: 3px;
+  padding: 18px 36px;
+}
+/* 弃牌：中等 */
+.mid-discard {
+  min-width: 220px;
+  min-height: 50px;
+  font-size: 15px;
+  padding: 12px 24px;
 }
 </style>

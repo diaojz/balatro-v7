@@ -59,6 +59,11 @@
       />
     </div>
 
+    <!-- v7.2 关卡切换 toast -->
+    <Transition name="blind-toast">
+      <div v-if="blindToastText" class="blind-toast">{{ blindToastText }}</div>
+    </Transition>
+
     <!-- 设置浮按钮 -->
     <SettingsButton @open="showSettings = true" />
 
@@ -96,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import SideBar from './components/SideBar.vue'
 import JokerArea from './components/JokerArea.vue'
 import PlayArea from './components/PlayArea.vue'
@@ -159,6 +164,17 @@ const shopAIHighlight = ref(null)
 // 设置
 const settings = ref(loadSettings())
 const showSettings = ref(false)
+
+// v7.2：关卡切换 toast
+const blindToastText = ref('')
+let blindToastTimer = null
+function showBlindToast() {
+  const blind = BLINDS[blindIndex.value]
+  if (!blind) return
+  blindToastText.value = `第 ${blindIndex.value + 1} 关 · ${blind.name} · 目标 ${blind.target} 分`
+  if (blindToastTimer) clearTimeout(blindToastTimer)
+  blindToastTimer = setTimeout(() => { blindToastText.value = '' }, 1800)
+}
 
 // 计分预估（出牌区公式预览）
 const previewChips = computed(() => {
@@ -250,6 +266,13 @@ async function dealCards(count) {
     const idx = hand.value.findIndex(c => c.id === cardId)
     if (idx !== -1) hand.value[idx] = { ...hand.value[idx], dealing: false }
   }
+
+  // v7.2：await 所有飞牌完成 + 自动按点排序（avoid AI 全自动连击时上一手动画未结束）
+  if (drawn.length > 0) {
+    const totalDuration = (drawn.length - 1) * 60 + 400 * getAnimScale() + 80
+    await new Promise(r => setTimeout(r, totalDuration))
+    hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank))
+  }
 }
 
 // 从 fromRect 飞到 toRect（纯 DOM clone + Web Animations）
@@ -316,6 +339,8 @@ function initGame() {
   showFormulaOverlay.value = false
   shopAIHighlight.value = null
   dealCards(HAND_SIZE)
+  // v7.2：第 1 关开始 toast
+  showBlindToast()
 }
 
 // ===== 选牌 =====
@@ -493,18 +518,19 @@ function spawnJokerFlyText(jokerId, deltaChips, deltaMult, beforeMult, afterMult
 
   const animScale = getAnimScale()
   el.textContent = text
+  // v7.2：飞字起点上移 28px（避免被 Joker 段 padding-top 切到），改用更大字号 + 黑色描边更显眼
   el.style.cssText = `
     position: fixed;
     left: ${rect.left + rect.width / 2}px;
-    top: ${rect.top}px;
+    top: ${rect.top - 28}px;
     transform: translateX(-50%);
-    font: 700 18px/1 Inter, sans-serif;
+    font: 900 22px/1 Inter, sans-serif;
     color: #ff8844;
     pointer-events: none;
     z-index: 999;
-    text-shadow: 0 0 8px rgba(255,136,68,.8);
+    text-shadow: 0 2px 0 #000, 0 0 12px rgba(255,136,68,.9);
     white-space: nowrap;
-    animation: flyTextUp ${0.6 * animScale}s ease-out forwards;
+    animation: flyTextUp ${0.7 * animScale}s ease-out forwards;
   `
   document.body.appendChild(el)
   setTimeout(() => el.remove(), 700 * animScale)
@@ -593,6 +619,8 @@ function handleSkip() {
   selectedIds.value = new Set()
   gameState.value = 'playing'
   dealCards(HAND_SIZE)
+  // v7.2：新一关开始 toast（第 2 / 第 3 关）
+  showBlindToast()
 }
 
 // ===== 重新开始 =====
@@ -606,6 +634,40 @@ function handleSettingsUpdate(newSettings) {
   saveSettings(newSettings)
   applyAnimScale(newSettings.animSpeed)
 }
+
+// ===== v7.2 AI 全自动托管模式 =====
+// 触发条件：settings.aiAutoMode === true 且 gameState 进入新状态时
+// playing 状态 → 思考 800ms 后自动 handleAIPlay
+// shop 状态 → 1s 后自动 handleSkip（不买，简化逻辑）
+let aiAutoBusy = false
+async function aiAutoStep() {
+  if (!settings.value.aiAutoMode) return
+  if (aiAutoBusy) return
+  if (isPlaying) return
+  aiAutoBusy = true
+
+  await new Promise(r => setTimeout(r, 600))
+  // 中途用户可能关了开关
+  if (!settings.value.aiAutoMode) { aiAutoBusy = false; return }
+
+  if (gameState.value === 'playing' && hand.value.length > 0 && !isPlaying) {
+    await handleAIPlay()
+  } else if (gameState.value === 'shop') {
+    await new Promise(r => setTimeout(r, 400))
+    if (settings.value.aiAutoMode && gameState.value === 'shop') {
+      handleSkip()
+    }
+  }
+
+  aiAutoBusy = false
+}
+
+// watch gameState 变化 + aiAutoMode 开启 → 触发 AI 步骤
+watch([gameState, () => settings.value.aiAutoMode, () => hand.value.length], () => {
+  if (settings.value.aiAutoMode && (gameState.value === 'playing' || gameState.value === 'shop')) {
+    aiAutoStep()
+  }
+}, { flush: 'post' })
 
 onMounted(() => {
   applyAnimScale(settings.value.animSpeed)
@@ -624,11 +686,46 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7.1 调整：缩小出牌段 + 加大手牌段（修选中遮挡 + 视觉权重平衡）
-     Joker 段 220px，手牌+按钮段 360px（选中态 -22px 不被遮），出牌 1fr 吸收剩余 */
-  grid-template-rows: 220px 1fr 360px;
+  /* v7.2 调整：Joker 段 260（容 padding-top 32 + 卡 200 + padding-bottom 12 + triggering 上移余量）；
+     手牌段 400（容方案 C 中央竖排 出牌特大+弃牌 的高度 ≈ 132）；出牌 1fr 吸收剩余 */
+  grid-template-rows: 260px 1fr 400px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;
+}
+
+/* v7.2 关卡切换 toast — 屏幕中央 1.8s 闪 */
+.blind-toast {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(255,209,102,.95), rgba(245,158,11,.95));
+  color: #1a1a1a;
+  font: 900 28px/1.2 'Inter', 'PingFang SC', sans-serif;
+  padding: 22px 48px;
+  border-radius: 16px;
+  border: 3px solid #ffd166;
+  box-shadow: 0 16px 40px rgba(0,0,0,.55), 0 0 40px rgba(255,209,102,.7);
+  z-index: 150;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(255,255,255,.4);
+}
+.blind-toast-enter-active {
+  animation: blindToastIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+.blind-toast-leave-active {
+  animation: blindToastOut .3s ease;
+}
+@keyframes blindToastIn {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-3deg); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08) rotate(1deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+}
+@keyframes blindToastOut {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
 }
 </style>

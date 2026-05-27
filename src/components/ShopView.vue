@@ -160,47 +160,48 @@ function buyBtnClass(joker) {
   padding: 14px 40px;
 }
 
-/* Joker 卡内部布局（复用） */
+/* v7.2 Joker 卡内部布局：字号同 JokerArea v7.1 — name 14px Inter / desc 13px Inter，art 52px */
 .joker-name-bar {
   position: absolute;
   top: 6px; left: 6px; right: 6px;
-  height: 18px;
+  height: 24px;
   background: linear-gradient(180deg, #2a1a3f, #160a23);
-  border-radius: 3px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 6px/1 'Press Start 2P', monospace;
+  font: 800 14px/1 'Inter', 'PingFang SC', sans-serif;
   color: var(--gold);
   text-shadow: 1px 1px 0 #000;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   padding: 0 4px;
+  letter-spacing: 0.5px;
 }
 .joker-art-area {
   position: absolute;
-  top: 28px; left: 0; right: 0;
-  height: 56px;
+  top: 34px; left: 0; right: 0;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(ellipse at center, var(--paper-1), var(--paper-3));
 }
-.joker-art { font-size: 36px; }
+.joker-art { font-size: 52px; }
 .joker-desc-bar {
   position: absolute;
   bottom: 6px; left: 6px; right: 6px;
-  height: 76px;
+  height: 72px;
   background: linear-gradient(180deg, var(--paper-1), var(--paper-2));
-  border-radius: 3px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 700 9px/1.3 'VT323', monospace;
+  font: 600 13px/1.35 'Inter', 'PingFang SC', sans-serif;
   color: #4a2d0a;
   text-align: center;
-  padding: 4px;
+  padding: 6px 8px;
   overflow: hidden;
 }
 </style>

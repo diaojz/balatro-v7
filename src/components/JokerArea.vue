@@ -64,8 +64,8 @@ defineExpose({ jokerRefs })
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 12px 16px 8px;
-  overflow: hidden;
+  padding: 32px 16px 12px; /* v7.2：顶部 padding 加大 32，给 triggering 上移 18 + 飞字起点留余量 */
+  overflow: visible;        /* v7.2：飞字 / triggering 上移可穿出段，避免被切 */
   background: rgba(15,23,42,.6);
 }
 

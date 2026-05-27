@@ -62,6 +62,21 @@
             <span class="toggle-knob"></span>
           </button>
         </div>
+
+        <!-- v7.2：AI 全自动托管 -->
+        <div class="setting-row ai-auto-row">
+          <label class="setting-label">
+            🤖 AI 全自动托管
+            <span class="setting-sub">连打整局：自动出牌 + 自动跳过商店</span>
+          </label>
+          <button
+            class="toggle-btn"
+            :class="{ on: settings.aiAutoMode }"
+            @click="update('aiAutoMode', !settings.aiAutoMode)"
+          >
+            <span class="toggle-knob"></span>
+          </button>
+        </div>
       </div>
 
       <button class="px-btn px-btn-skip close-btn" @click="$emit('close')">关闭</button>
@@ -134,6 +149,21 @@ function update(key, value) {
   font: 600 13px/1 var(--sans);
   color: var(--text-dim);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.setting-sub {
+  font: 500 11px/1.2 var(--sans);
+  color: var(--muted);
+  max-width: 200px;
+}
+.ai-auto-row {
+  padding: 10px 12px;
+  background: rgba(168,85,247,.08);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 8px;
+  margin-top: 4px;
 }
 
 .slider-wrap {

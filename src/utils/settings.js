@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS = {
   sfxVolume: 70,
   animSpeed: 'normal', // 'slow' | 'normal' | 'fast'
   showFormula: true,
+  aiAutoMode: false,   // v7.2：AI 全自动托管（开启后自动出牌 / 跳过商店连打整局）
 }
 
 // 动画速度倍率映射（CSS 变量 --anim-scale）
