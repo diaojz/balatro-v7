@@ -560,16 +560,25 @@ async function handleDiscard() {
   await dealCards(Math.min(selected.length, deck.value.length))
 }
 
-// ===== AI 出牌 =====
+// ===== AI 出牌（v7.19：逐张选牌增加参与感）=====
 async function handleAIPlay() {
   if (gameState.value !== 'playing') return
   if (isPlaying) return
 
   const bestIds = aiPickBestSubset(hand.value, ownedJokers.value)
-  selectedIds.value = new Set(bestIds)
 
-  // 200ms 后自动出牌，让用户看到选中态
-  await new Promise(resolve => setTimeout(resolve, 200))
+  // v7.19：一张张点选，每张 350ms 间隔，让玩家看清 AI 思考过程
+  selectedIds.value = new Set()
+  for (const id of bestIds) {
+    await new Promise(r => setTimeout(r, 350 * getAnimScale()))
+    if (gameState.value !== 'playing') return
+    // 累积选中（保留之前的选中态，新增一张）
+    selectedIds.value = new Set([...selectedIds.value, id])
+  }
+
+  // 全部选完后停 600ms 让用户看清最终组合
+  await new Promise(r => setTimeout(r, 600 * getAnimScale()))
+  if (gameState.value !== 'playing') return
   await handlePlay()
 }
 
