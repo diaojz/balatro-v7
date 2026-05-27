@@ -175,24 +175,24 @@ function suitColor(suit) {
   line-height: 1;
 }
 
-/* v7.10：飞字放大 + 黑色描边 + 发光，看清楚加分 */
+/* v7.12：飞字再大 2 倍（36→72px）+ 加厚描边 + 更强发光 */
 .fly-text {
   position: absolute;
-  top: -16px;
+  top: -48px;
   left: 50%;
   transform: translateX(-50%);
-  font: 900 36px/1 var(--sans);
+  font: 900 72px/1 var(--sans);
   pointer-events: none;
   z-index: 10;
   white-space: nowrap;
-  letter-spacing: 1px;
-  animation: flyTextUp calc(0.7s * var(--anim-scale)) ease-out forwards;
+  letter-spacing: 2px;
+  animation: flyTextUp calc(0.8s * var(--anim-scale)) ease-out forwards;
 }
 .chips-fly {
   color: #4dd6ff;
   text-shadow:
-    -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
-    0 0 16px rgba(77,214,255,.9), 0 0 32px rgba(77,214,255,.6);
+    -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
+    0 0 24px rgba(77,214,255,1), 0 0 48px rgba(77,214,255,.8);
 }
 
 /* v7.1：计分公式 inline 显示（在牌上方），不再 absolute */
