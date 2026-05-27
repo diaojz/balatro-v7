@@ -51,7 +51,8 @@
         :discards-left="discardsLeft"
         :game-state="gameState"
         :ai-auto-mode="settings.aiAutoMode"
-        :is-sorting="isSorting"
+        :is-collapsing="isCollapsing"
+        :is-spreading="isSpreading"
         @toggle-select="toggleSelect"
         @play="handlePlay"
         @discard="handleDiscard"
@@ -167,16 +168,37 @@ const jokerHitCardIds = ref([])
 // 商店 AI 高亮
 const shopAIHighlight = ref(null)
 
-// v7.31：理牌动效再润色（赌场荷官风格）— 错峰 60ms × 8 张 + 单张 720ms
-// 总时长 = 最后一张 delay 420ms + 动画 720ms = 1140ms
-const isSorting = ref(false)
-let sortingTimer = null
+// v7.34：理牌动效改两阶段「收拢叠中央 → 错峰飞回」
+// 阶段 1 (gather): 150ms 所有牌同时缩到中央叠起
+// 阶段 2 (spread): 错峰 35ms × 8 张 × 单张 300ms 飞回各自位置
+// 总时长 = 150 + 7*35 + 300 = 695ms（快速且节奏明显）
+const isSorting = ref(false)         // 保留兼容（用于 prop 传 HandArea）
+const isCollapsing = ref(false)      // 阶段 1：收拢
+const isSpreading = ref(false)       // 阶段 2：展开
+let sortingTimer1 = null
+let sortingTimer2 = null
 function triggerSortingAnim() {
-  isSorting.value = false
+  // 重置
+  isCollapsing.value = false
+  isSpreading.value = false
+  if (sortingTimer1) clearTimeout(sortingTimer1)
+  if (sortingTimer2) clearTimeout(sortingTimer2)
+
+  const scale = getAnimScale()
+  // 阶段 1：collapse 立即开始
   requestAnimationFrame(() => {
+    isCollapsing.value = true
     isSorting.value = true
-    if (sortingTimer) clearTimeout(sortingTimer)
-    sortingTimer = setTimeout(() => { isSorting.value = false }, 1200 * getAnimScale())
+    // 阶段 2：collapse 完后 spread
+    sortingTimer1 = setTimeout(() => {
+      isCollapsing.value = false
+      isSpreading.value = true
+      // 收尾
+      sortingTimer2 = setTimeout(() => {
+        isSpreading.value = false
+        isSorting.value = false
+      }, (7 * 35 + 350) * scale)
+    }, 150 * scale)
   })
 }
 
@@ -287,13 +309,12 @@ async function dealCards(count) {
   }
 
   // v7.2：await 所有飞牌完成 + v7.4 自动按点降序排序（大牌在左 A→2）
-  // v7.33：去掉 triggerSortingAnim，让 TransitionGroup .hand-sort-move 平滑过渡即可
-  //        避免「发牌飞入 + cardCasinoSweep 飞入」两次动画串视觉不顺畅
-  //        手动点排序按钮仍走 sortByRankWithAnim（保留炫酷飞入特效）
+  // v7.34：发完牌立刻触发"收拢→飞回"理牌动画，节奏快速连贯
   if (drawn.length > 0) {
     const totalDuration = (drawn.length - 1) * 60 + 400 * getAnimScale() + 80
     await new Promise(r => setTimeout(r, totalDuration))
     hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank))
+    triggerSortingAnim()
   }
 }
 

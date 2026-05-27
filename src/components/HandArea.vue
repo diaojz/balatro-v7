@@ -16,12 +16,12 @@
       </button>
     </div>
 
-    <!-- 手牌横排（v7.25：TransitionGroup 让排序时牌平滑滑到新位置 + 蓝光闪烁）-->
+    <!-- 手牌横排（v7.34：两阶段理牌 — 先收拢叠中央，再依次飞回）-->
     <TransitionGroup
       name="hand-sort"
       tag="div"
       class="hand-cards"
-      :class="{ 'is-sorting': isSorting }"
+      :class="{ 'is-collapsing': isCollapsing, 'is-spreading': isSpreading }"
     >
       <div
         v-for="card in hand"
@@ -101,7 +101,8 @@ const props = defineProps({
   discardsLeft: Number,
   gameState: String,
   aiAutoMode: { type: Boolean, default: false },
-  isSorting: { type: Boolean, default: false },
+  isCollapsing: { type: Boolean, default: false },
+  isSpreading: { type: Boolean, default: false },
 })
 
 defineEmits(['toggle-select', 'play', 'discard', 'sort-by-rank', 'sort-by-suit', 'ai-play', 'card-ref', 'toggle-auto'])
@@ -168,55 +169,52 @@ defineExpose({ cardRefs, aiBtnRef })
 
 /* v7.30：理牌动效改'从左到右依次展开'（斗地主风格） — 牌从左侧外飞入，从左到右串联
    sort 已在 JS 中完成（hand 数组已是新顺序），所以飞入时牌已在新位置 */
-.hand-cards.is-sorting .playing-card {
-  /* v7.31：润色为赌场荷官风 — 柔和 ease-out / blur 运动模糊 / 轻微 overshoot + 二段回弹 */
-  transition: none !important;
-  animation: cardCasinoSweep calc(0.72s * var(--anim-scale, 1)) cubic-bezier(.22, .68, .32, 1) backwards;
-  will-change: transform, opacity, filter;
-}
-/* 每张错峰 60ms（更密集连贯），第 1 张最先飞入 → 第 8 张最后 */
-.hand-cards.is-sorting .playing-card:nth-child(1) { animation-delay: 0ms; }
-.hand-cards.is-sorting .playing-card:nth-child(2) { animation-delay: 60ms; }
-.hand-cards.is-sorting .playing-card:nth-child(3) { animation-delay: 120ms; }
-.hand-cards.is-sorting .playing-card:nth-child(4) { animation-delay: 180ms; }
-.hand-cards.is-sorting .playing-card:nth-child(5) { animation-delay: 240ms; }
-.hand-cards.is-sorting .playing-card:nth-child(6) { animation-delay: 300ms; }
-.hand-cards.is-sorting .playing-card:nth-child(7) { animation-delay: 360ms; }
-.hand-cards.is-sorting .playing-card:nth-child(8) { animation-delay: 420ms; }
+/* v7.34：理牌动效两阶段
+   阶段 1 (is-collapsing): 所有牌瞬间往中央叠起（150ms 同步）
+   阶段 2 (is-spreading): 从中央叠态依次错峰 35ms 飞回各自位置（每张 300ms）
+   总时长 ≈ 150 + 7×35 + 300 = 695ms（节奏明显但快速）
+*/
 
-@keyframes cardCasinoSweep {
-  /* v7.32：动作幅度全面减半，更优雅微妙 */
+/* 阶段 1：收拢 — 所有牌同步缩小 + 上移 + 半透明，叠在中央上方 */
+.hand-cards.is-collapsing .playing-card {
+  transition: none !important;
+  animation: cardCollapse calc(0.15s * var(--anim-scale, 1)) ease-in forwards;
+  will-change: transform, opacity;
+}
+@keyframes cardCollapse {
+  0%   { transform: scale(1) translateY(0) rotate(0); opacity: 1; }
+  100% { transform: scale(0.35) translateY(-25px) rotate(-3deg); opacity: 0.7; }
+}
+
+/* 阶段 2：展开 — 每张牌从收拢态依次错峰飞回 */
+.hand-cards.is-spreading .playing-card {
+  transition: none !important;
+  animation: cardSpread calc(0.32s * var(--anim-scale, 1)) cubic-bezier(.25, .8, .35, 1) backwards;
+  will-change: transform, opacity;
+}
+.hand-cards.is-spreading .playing-card:nth-child(1) { animation-delay: 0ms; }
+.hand-cards.is-spreading .playing-card:nth-child(2) { animation-delay: 35ms; }
+.hand-cards.is-spreading .playing-card:nth-child(3) { animation-delay: 70ms; }
+.hand-cards.is-spreading .playing-card:nth-child(4) { animation-delay: 105ms; }
+.hand-cards.is-spreading .playing-card:nth-child(5) { animation-delay: 140ms; }
+.hand-cards.is-spreading .playing-card:nth-child(6) { animation-delay: 175ms; }
+.hand-cards.is-spreading .playing-card:nth-child(7) { animation-delay: 210ms; }
+.hand-cards.is-spreading .playing-card:nth-child(8) { animation-delay: 245ms; }
+
+@keyframes cardSpread {
   0%   {
-    transform: translateX(-70px) translateY(3px) scale(0.92) rotate(-3deg);
-    opacity: 0;
-    box-shadow: 0 0 0 rgba(0,0,0,0);
-    filter: blur(1.5px);
+    /* 起点 = 收拢态 */
+    transform: scale(0.35) translateY(-25px) rotate(-3deg);
+    opacity: 0.7;
   }
-  20%  {
-    opacity: 0.6;
-    filter: blur(1px);
-  }
-  50%  {
-    transform: translateX(-18px) translateY(-1px) scale(0.97) rotate(-1deg);
+  70%  {
+    /* 飞到位时轻微 overshoot */
+    transform: scale(1.03) translateY(-3px) rotate(0.6deg);
     opacity: 1;
-    filter: blur(0.3px);
-  }
-  68%  {
-    /* 轻微 overshoot — 幅度减半，更微妙 */
-    transform: translateX(2px) translateY(-2px) scale(1.018) rotate(0.5deg);
-    box-shadow: 0 7px 0 rgba(0,0,0,.45), 0 0 10px rgba(77,214,255,.3);
-    filter: blur(0);
-  }
-  85%  {
-    /* 微反弹 — 几乎不可察觉 */
-    transform: translateX(-0.5px) translateY(0) scale(1.005) rotate(-0.2deg);
-    box-shadow: 0 5px 0 rgba(0,0,0,.5);
   }
   100% {
-    transform: translateX(0) translateY(0) scale(1) rotate(0);
+    transform: scale(1) translateY(0) rotate(0);
     opacity: 1;
-    box-shadow: 0 4px 0 rgba(0,0,0,.5);
-    filter: none;
   }
 }
 
