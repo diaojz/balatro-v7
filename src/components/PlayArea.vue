@@ -16,14 +16,17 @@
         </template>
       </div>
 
-      <!-- 出牌展示：v7.21 三层 — 牌型名 banner / 公式 / 牌 -->
+      <!-- 出牌展示：v7.22 牌型 banner 和公式分时显示（互不遮挡）
+           - 出牌瞬间 → 牌型 banner 弹出，停留期间显示逐张高亮+飞字
+           - 公式爆出时 → 牌型 banner 自动淡出让位
+      -->
       <template v-else>
-        <!-- v7.21：牌型名大字 banner（同花顺 / 葫芦 / 两对 …）出牌时弹出 -->
+        <!-- 牌型名 banner（公式未爆出时显示） -->
         <Transition name="hand-name-pop">
-          <div v-if="handName" class="hand-name-banner" :key="handName">{{ handName }}</div>
+          <div v-if="handName && !showFormulaOverlay" class="hand-name-banner" :key="handName">{{ handName }}</div>
         </Transition>
 
-        <!-- 计分公式爆出（在牌上方） -->
+        <!-- 计分公式爆出（在牌上方，互斥替换牌型 banner） -->
         <Transition name="formula">
           <div v-if="showFormulaOverlay" class="formula-inline">
             <span class="formula-chips">{{ formulaChips }}</span>
