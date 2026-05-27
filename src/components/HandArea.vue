@@ -16,8 +16,13 @@
       </button>
     </div>
 
-    <!-- 手牌横排 -->
-    <div class="hand-cards">
+    <!-- 手牌横排（v7.25：TransitionGroup 让排序时牌平滑滑到新位置 + 蓝光闪烁）-->
+    <TransitionGroup
+      name="hand-sort"
+      tag="div"
+      class="hand-cards"
+      :class="{ 'is-sorting': isSorting }"
+    >
       <div
         v-for="card in hand"
         :key="card.id"
@@ -39,7 +44,7 @@
           <div class="card-suit-small">{{ card.suit }}</div>
         </div>
       </div>
-    </div>
+    </TransitionGroup>
 
     <!-- v7.2：方案 C 三栏 grid 布局 — 左排序图标 / 中央竖排 出牌特大+弃牌 / 右 AI -->
     <div class="btn-row">
@@ -96,6 +101,7 @@ const props = defineProps({
   discardsLeft: Number,
   gameState: String,
   aiAutoMode: { type: Boolean, default: false },
+  isSorting: { type: Boolean, default: false },
 })
 
 defineEmits(['toggle-select', 'play', 'discard', 'sort-by-rank', 'sort-by-suit', 'ai-play', 'card-ref', 'toggle-auto'])
@@ -153,6 +159,24 @@ defineExpose({ cardRefs, aiBtnRef })
   overflow: visible; /* v7.1：让选中态 -22px 不被切 */
   padding-bottom: 8px;
   min-height: 170px; /* 卡 145 + 选中态 -22 余量 */
+}
+
+/* v7.25：TransitionGroup move 让牌排序时平滑滑到新位置（弹性 cubic-bezier） */
+.hand-sort-move {
+  transition: transform calc(0.55s * var(--anim-scale, 1)) cubic-bezier(.34, 1.36, .64, 1);
+}
+
+/* v7.25：排序瞬间，所有牌短暂蓝色发光 + 微微上浮再回落 */
+.hand-cards.is-sorting .playing-card {
+  animation: cardSortPulse calc(0.6s * var(--anim-scale, 1)) ease-out;
+}
+@keyframes cardSortPulse {
+  0%   { box-shadow: 0 4px 0 rgba(0,0,0,.5); transform: translateY(0); }
+  35%  {
+    box-shadow: 0 10px 0 rgba(0,0,0,.5), 0 0 28px rgba(77,214,255,.95), 0 0 12px rgba(77,214,255,.7);
+    transform: translateY(-12px);
+  }
+  100% { box-shadow: 0 4px 0 rgba(0,0,0,.5); transform: translateY(0); }
 }
 
 .card-corner {

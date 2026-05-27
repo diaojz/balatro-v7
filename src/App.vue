@@ -50,11 +50,12 @@
         :discards-left="discardsLeft"
         :game-state="gameState"
         :ai-auto-mode="settings.aiAutoMode"
+        :is-sorting="isSorting"
         @toggle-select="toggleSelect"
         @play="handlePlay"
         @discard="handleDiscard"
-        @sort-by-rank="sortByRank"
-        @sort-by-suit="sortBySuit"
+        @sort-by-rank="sortByRankWithAnim"
+        @sort-by-suit="sortBySuitWithAnim"
         @ai-play="handleAIPlay"
         @toggle-auto="toggleAiAutoMode"
         ref="handAreaRef"
@@ -162,6 +163,19 @@ const formulaScore = ref(0)
 
 // 商店 AI 高亮
 const shopAIHighlight = ref(null)
+
+// v7.25：理牌动效标记（dealCards 末尾自动排序 / 手动点排序按钮触发）
+const isSorting = ref(false)
+let sortingTimer = null
+function triggerSortingAnim() {
+  isSorting.value = false
+  // 下一帧再设 true → 让动画重启（避免连续触发不重新播）
+  requestAnimationFrame(() => {
+    isSorting.value = true
+    if (sortingTimer) clearTimeout(sortingTimer)
+    sortingTimer = setTimeout(() => { isSorting.value = false }, 700 * getAnimScale())
+  })
+}
 
 // 设置
 const settings = ref(loadSettings())
@@ -274,6 +288,8 @@ async function dealCards(count) {
     const totalDuration = (drawn.length - 1) * 60 + 400 * getAnimScale() + 80
     await new Promise(r => setTimeout(r, totalDuration))
     hand.value = [...hand.value].sort((a, b) => RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank))
+    // v7.25：理牌动效（蓝光闪 + TransitionGroup 平滑滑动）
+    triggerSortingAnim()
   }
 }
 
@@ -373,6 +389,16 @@ function sortBySuit() {
     return RANK_ORDER.indexOf(b.rank) - RANK_ORDER.indexOf(a.rank) // 同花色内大牌在左
   })
   selectedIds.value = new Set()
+}
+
+// v7.25：手动点排序按钮 → 触发理牌动效（蓝光闪 + 平滑滑动）
+function sortByRankWithAnim() {
+  sortByRank()
+  triggerSortingAnim()
+}
+function sortBySuitWithAnim() {
+  sortBySuit()
+  triggerSortingAnim()
 }
 
 // ===== 出牌（完整动画时间线 PRD §5.1）=====
