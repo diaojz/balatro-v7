@@ -16,7 +16,8 @@
       >
         <div class="joker-name-bar">{{ joker.name }}</div>
         <div class="joker-art-area">
-          <span class="joker-art">{{ joker.art }}</span>
+          <img v-if="isImagePath(joker.art)" :src="joker.art" :alt="joker.name" class="joker-art-img" />
+          <span v-else class="joker-art">{{ joker.art }}</span>
         </div>
         <div class="joker-desc-bar">{{ joker.description }}</div>
       </div>
@@ -48,6 +49,11 @@ const emptySlots = computed(() => MAX_JOKERS - props.ownedJokers.length)
 
 function rarityColor(rarity) {
   return RARITY_COLOR[rarity] || RARITY_COLOR.common
+}
+
+// v7.29：判断 art 字段是图片路径（Vite import 后是 /assets/xxx.jpg）还是 emoji
+function isImagePath(art) {
+  return typeof art === 'string' && (art.startsWith('/') || art.startsWith('data:') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(art))
 }
 
 // 暴露 Joker DOM refs 给父组件做飞字动画
@@ -114,8 +120,17 @@ defineExpose({ jokerRefs })
   align-items: center;
   justify-content: center;
   background: radial-gradient(ellipse at center, var(--paper-1), var(--paper-3));
+  overflow: hidden;
 }
 .joker-art { font-size: 52px; }
+/* v7.29：Balatro 像素风官方 Joker 图 */
+.joker-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 
 .joker-desc-bar {
   position: absolute;

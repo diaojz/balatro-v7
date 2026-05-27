@@ -19,7 +19,8 @@
           >
             <div class="joker-name-bar">{{ joker.name }}</div>
             <div class="joker-art-area">
-              <span class="joker-art">{{ joker.art }}</span>
+              <img v-if="isImagePath(joker.art)" :src="joker.art" :alt="joker.name" class="joker-art-img" />
+              <span v-else class="joker-art">{{ joker.art }}</span>
             </div>
             <div class="joker-desc-bar">{{ joker.description }}</div>
           </div>
@@ -63,6 +64,10 @@ defineEmits(['buy', 'skip', 'ai-suggest'])
 
 function rarityColor(rarity) {
   return RARITY_COLOR[rarity] || RARITY_COLOR.common
+}
+
+function isImagePath(art) {
+  return typeof art === 'string' && (art.startsWith('/') || art.startsWith('data:') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(art))
 }
 
 function buyBtnText(joker) {
@@ -187,8 +192,16 @@ function buyBtnClass(joker) {
   align-items: center;
   justify-content: center;
   background: radial-gradient(ellipse at center, var(--paper-1), var(--paper-3));
+  overflow: hidden;
 }
 .joker-art { font-size: 52px; }
+.joker-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 .joker-desc-bar {
   position: absolute;
   bottom: 6px; left: 6px; right: 6px;
