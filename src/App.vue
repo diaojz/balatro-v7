@@ -505,17 +505,18 @@ function spawnJokerFlyText(jokerId, deltaChips, deltaMult, beforeMult, afterMult
   const rect = jokerEl.getBoundingClientRect()
   const el = document.createElement('div')
 
+  // v7.24：飞字改中文，零基础玩家看得懂
   let text = ''
   if (deltaMult !== 0) {
-    // 判断是乘法还是加法（before.mult > 0 且结果不等于 before.mult + deltaMult 则是乘法）
+    // 判断是乘法还是加法
     const isMultiply = beforeMult > 0 && Math.abs(afterMult - (beforeMult + deltaMult)) > 0.01
     if (isMultiply) {
-      text = `×${(afterMult / beforeMult).toFixed(0)}`
+      text = `×${(afterMult / beforeMult).toFixed(0)} 倍率`
     } else {
-      text = `+${deltaMult} Mult`
+      text = `+${deltaMult} 倍率`
     }
   } else if (deltaChips !== 0) {
-    text = `+${deltaChips}`
+    text = `+${deltaChips} 筹码`
   }
   if (!text) return
 
