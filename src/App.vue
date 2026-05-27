@@ -663,11 +663,25 @@ async function aiAutoStep() {
         // 出完一手停 1.4s 让玩家看清计分公式 + Joker 触发 + blindScore 跳动
         await new Promise(r => setTimeout(r, 1400))
       } else if (gameState.value === 'shop') {
-        // 商店停留 2s 看清商店内容（3 张 Joker + 价格）
-        await new Promise(r => setTimeout(r, 2000))
+        // v7.5：商店分 3 段动画让用户看清
+        // 1) 停 1s 让用户看清商店内容（3 张 Joker + 价格）
+        await new Promise(r => setTimeout(r, 1000))
+        if (!settings.value.aiAutoMode) break
+
+        // 2) AI 决定买哪张 → 高亮 → 等 800ms → 购买
+        const buyId = aiSuggestShopBuy(shopJokers.value, coins.value, ownedJokers.value.length)
+        if (buyId) {
+          shopAIHighlight.value = buyId
+          await new Promise(r => setTimeout(r, 900))
+          if (!settings.value.aiAutoMode) break
+          handleBuy(buyId)
+          // 看购买动画（卡变"已售出" + 金币扣减 + Joker 进槽位）
+          await new Promise(r => setTimeout(r, 900))
+        }
+
+        // 3) 跳过商店
         if (settings.value.aiAutoMode && gameState.value === 'shop') {
           await handleSkip()
-          // 等关卡 toast + dealCards 完成
           await new Promise(r => setTimeout(r, 800))
         }
       } else {
@@ -707,9 +721,9 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7.3 调整：手牌段 400→340（减少底部红框空白，让出牌段占更多空间）
-     Joker 260 不变（保 triggering 上移空间）；出牌 1fr 吸收剩余，公式+牌组贴顶 */
-  grid-template-rows: 260px 1fr 340px;
+  /* v7.5 调整：手牌段 340→280（出牌+弃牌横排后只需 60 高 + padding，缩到 280；红框基本消除）
+     Joker 260 不变；出牌 1fr 吸收剩余；HandArea padding-top 收 8 让选中态穿到 PlayArea 底部"红框"区域 */
+  grid-template-rows: 260px 1fr 280px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;

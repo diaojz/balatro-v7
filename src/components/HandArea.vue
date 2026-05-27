@@ -46,7 +46,7 @@
         </button>
       </div>
 
-      <!-- 中：出牌（特大）+ 弃牌（中等）竖排 -->
+      <!-- v7.5：中央改横排出牌+弃牌，节省顶部空间 -->
       <div class="btn-center">
         <button
           class="px-btn px-btn-play big-play"
@@ -111,7 +111,7 @@ defineExpose({ cardRefs, aiBtnRef })
 .hand-area {
   display: flex;
   flex-direction: column;
-  padding: 32px 16px 12px; /* v7.3：padding-top 56→32 节省顶部空白，依靠 overflow visible 让选中态不被切 */
+  padding: 8px 16px 12px; /* v7.5：padding-top 32→8 收掉，选中态 -22 自然穿出段顶进入 PlayArea 底部红框区域（视觉融合） */
   overflow: visible;
 }
 
@@ -176,11 +176,12 @@ defineExpose({ cardRefs, aiBtnRef })
   justify-content: flex-start;
   align-items: center;
 }
+/* v7.5：横排出牌+弃牌，节省垂直空间 */
 .btn-center {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 .btn-right {
   display: flex;
@@ -218,19 +219,18 @@ defineExpose({ cardRefs, aiBtnRef })
   letter-spacing: 0.5px;
 }
 
-/* 出牌按钮：特大居中（v7.3 紧凑：68→60） */
+/* v7.5：出牌+弃牌横排，出牌仍是视觉主角（更宽更亮） */
 .big-play {
-  min-width: 260px;
+  min-width: 240px;
   min-height: 60px;
   font-size: 20px;
   letter-spacing: 3px;
-  padding: 14px 32px;
+  padding: 14px 28px;
 }
-/* 弃牌：中等（v7.3 紧凑：50→46） */
 .mid-discard {
-  min-width: 200px;
-  min-height: 46px;
-  font-size: 14px;
-  padding: 10px 22px;
+  min-width: 160px;
+  min-height: 60px;
+  font-size: 16px;
+  padding: 14px 20px;
 }
 </style>
