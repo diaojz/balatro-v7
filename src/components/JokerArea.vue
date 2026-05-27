@@ -64,12 +64,12 @@ defineExpose({ jokerRefs })
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 32px 16px 12px; /* v7.2：顶部 padding 加大 32，给 triggering 上移 18 + 飞字起点留余量 */
-  overflow: visible;        /* v7.2：飞字 / triggering 上移可穿出段，避免被切 */
+  padding: 8px 16px 0; /* v7.8：padding-top 缩 8，bottom 0；卡贴段底消除底部空白 */
+  overflow: visible;    /* triggering 上移 / 飞字可穿出段顶 */
   background: rgba(15,23,42,.6);
 }
 
-.joker-header { margin-bottom: 10px; }
+.joker-header { margin-bottom: 0; }
 .joker-title {
   font: 14px/1 'Press Start 2P', monospace;
   color: var(--gold);
@@ -80,9 +80,10 @@ defineExpose({ jokerRefs })
 .joker-row {
   display: flex;
   gap: 10px;
-  align-items: flex-start; /* 贴段顶 */
+  align-items: flex-start;
   flex-wrap: nowrap;
   overflow-x: auto;
+  margin-top: auto; /* v7.8：推到段底，消除底部空白；上方空白容 triggering 上移 18 + scale 15 */
 }
 
 /* v7.1：放大字体 — Press Start 2P 6px / VT323 9px 中文 fallback 糊到看不清，改 Inter */

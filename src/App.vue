@@ -730,9 +730,8 @@ onMounted(() => {
 .main-area {
   flex: 1;
   display: grid;
-  /* v7.5 调整：手牌段 340→280（出牌+弃牌横排后只需 60 高 + padding，缩到 280；红框基本消除）
-     Joker 260 不变；出牌 1fr 吸收剩余；HandArea padding-top 收 8 让选中态穿到 PlayArea 底部"红框"区域 */
-  grid-template-rows: 260px 1fr 280px;
+  /* v7.8 调整：Joker 段 260→250（卡贴底 + 顶部留 50px 给 triggering 上移 33 余量；不再有底部空白） */
+  grid-template-rows: 250px 1fr 280px;
   min-width: 0;
   height: 100vh;
   overflow: hidden;
