@@ -40,6 +40,7 @@
         :formula-chips="formulaChips"
         :formula-mult="formulaMult"
         :formula-score="formulaScore"
+        :joker-hit-ids="jokerHitCardIds"
         ref="playAreaRef"
       />
 
@@ -160,6 +161,8 @@ const showFormulaOverlay = ref(false)
 const formulaChips = ref(0)
 const formulaMult = ref(0)
 const formulaScore = ref(0)
+// v7.26：当前 Joker 命中的出牌 id 集合（依次添加触发炸裂动画）
+const jokerHitCardIds = ref([])
 
 // 商店 AI 高亮
 const shopAIHighlight = ref(null)
@@ -453,7 +456,7 @@ async function handlePlay() {
 
   await delay(100)
 
-  // 步骤 4：逐 Joker 触发
+  // 步骤 4：逐 Joker 触发（v7.26：命中牌依次炸裂特效）
   for (const joker of ownedJokers.value) {
     if (typeof joker.effect !== 'function') continue
     const before = { chips: currentChips, mult: currentMult }
@@ -471,7 +474,21 @@ async function handlePlay() {
       const deltaChips = currentChips - before.chips
       spawnJokerFlyText(joker.id, deltaChips, deltaMult, before.mult, currentMult)
 
-      await delay(800)
+      // v7.26：让命中的牌依次炸裂（每张错峰 180ms）
+      jokerHitCardIds.value = []
+      const matchedIds = typeof joker.matchCards === 'function'
+        ? joker.matchCards(selected, handType.name)
+        : []
+      for (const cardId of matchedIds) {
+        jokerHitCardIds.value = [...jokerHitCardIds.value, cardId]
+        await delay(180)
+      }
+
+      // 等剩余时间（保证 Joker 触发整体节奏不少于 800ms）
+      const matchedDuration = matchedIds.length * 180
+      if (matchedDuration < 800) await delay(800 - matchedDuration)
+
+      jokerHitCardIds.value = []
       triggeringJokerIds.value = []
       await delay(100)
     }
