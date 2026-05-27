@@ -286,14 +286,34 @@ const rewardPreview = computed(() => {
 }
 
 .hand-type-name {
-  font: 700 14px/1 var(--sans);
-  color: #60a5fa;
-  margin-bottom: 8px;
-  min-height: 14px;
+  font: 900 20px/1.1 'Inter', 'PingFang SC', sans-serif;
+  color: #ffd166;
+  margin-bottom: 10px;
+  min-height: 22px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-shadow:
+    -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000,
+    0 0 12px rgba(255,209,102,.7);
+  transition: transform .2s ease;
+  transform-origin: center;
 }
-/* 未选牌时用 muted 灰，PRD §10.3 锁定 */
+/* v7.21：选中后牌型名 bump 弹出 */
+.hand-type-name:not(.empty) {
+  animation: handTypePulse calc(0.5s * var(--anim-scale)) ease-out;
+}
+@keyframes handTypePulse {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* 未选牌时灰色 + 无描边发光 + 无 pulse */
 .hand-type-name.empty {
   color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-shadow: none;
 }
 .score-row {
   display: flex;

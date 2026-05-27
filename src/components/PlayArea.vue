@@ -3,7 +3,6 @@
   <section class="play-area">
     <div class="play-header">
       <span class="play-title">出牌区</span>
-      <span v-if="handName" class="play-hand-name">{{ handName }}</span>
     </div>
 
     <div class="play-cards">
@@ -17,8 +16,13 @@
         </template>
       </div>
 
-      <!-- 出牌展示：v7.1 改 column 布局 → 公式在上 / 牌在下 / 全水平居中 -->
+      <!-- 出牌展示：v7.21 三层 — 牌型名 banner / 公式 / 牌 -->
       <template v-else>
+        <!-- v7.21：牌型名大字 banner（同花顺 / 葫芦 / 两对 …）出牌时弹出 -->
+        <Transition name="hand-name-pop">
+          <div v-if="handName" class="hand-name-banner" :key="handName">{{ handName }}</div>
+        </Transition>
+
         <!-- 计分公式爆出（在牌上方） -->
         <Transition name="formula">
           <div v-if="showFormulaOverlay" class="formula-inline">
@@ -117,9 +121,36 @@ function suitColor(suit) {
   color: var(--muted);
   letter-spacing: 0.5px;
 }
-.play-hand-name {
-  font: 700 16px/1 var(--sans);
-  color: #60a5fa;
+
+/* v7.21：牌型名大字 banner — 出牌时同花顺/葫芦/两对 等弹出 */
+.hand-name-banner {
+  font: 900 42px/1 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #ffd166;
+  letter-spacing: 6px;
+  text-align: center;
+  padding: 8px 28px;
+  background: linear-gradient(135deg, rgba(255,209,102,.10), rgba(168,85,247,.08));
+  border: 2px solid rgba(255,209,102,.5);
+  border-radius: 14px;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+    0 0 18px rgba(255,209,102,.95), 0 0 36px rgba(255,209,102,.55);
+  box-shadow: 0 6px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
+}
+.hand-name-pop-enter-active {
+  animation: handNamePop calc(0.5s * var(--anim-scale)) cubic-bezier(.34,1.56,.64,1);
+}
+.hand-name-pop-leave-active {
+  animation: handNamePopOut calc(0.25s * var(--anim-scale)) ease-in;
+}
+@keyframes handNamePop {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-4deg); }
+  55%  { opacity: 1; transform: scale(1.12) rotate(1.5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes handNamePopOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
 }
 
 .play-cards {
