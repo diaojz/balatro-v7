@@ -185,31 +185,32 @@ defineExpose({ cardRefs, aiBtnRef })
 .hand-cards.is-sorting .playing-card:nth-child(8) { animation-delay: 420ms; }
 
 @keyframes cardCasinoSweep {
+  /* v7.32：动作幅度全面减半，更优雅微妙 */
   0%   {
-    transform: translateX(-150px) translateY(6px) scale(0.78) rotate(-7deg);
+    transform: translateX(-70px) translateY(3px) scale(0.92) rotate(-3deg);
     opacity: 0;
     box-shadow: 0 0 0 rgba(0,0,0,0);
-    filter: blur(3px);
+    filter: blur(1.5px);
   }
-  18%  {
-    opacity: 0.55;
-    filter: blur(2px);
+  20%  {
+    opacity: 0.6;
+    filter: blur(1px);
   }
-  45%  {
-    transform: translateX(-30px) translateY(-2px) scale(0.95) rotate(-2deg);
+  50%  {
+    transform: translateX(-18px) translateY(-1px) scale(0.97) rotate(-1deg);
     opacity: 1;
-    filter: blur(0.5px);
+    filter: blur(0.3px);
   }
-  62%  {
-    /* 轻微 overshoot — 牌"滑到位时微微弹一下" */
-    transform: translateX(5px) translateY(-5px) scale(1.04) rotate(1.2deg);
-    box-shadow: 0 10px 0 rgba(0,0,0,.4), 0 0 18px rgba(77,214,255,.5);
+  68%  {
+    /* 轻微 overshoot — 幅度减半，更微妙 */
+    transform: translateX(2px) translateY(-2px) scale(1.018) rotate(0.5deg);
+    box-shadow: 0 7px 0 rgba(0,0,0,.45), 0 0 10px rgba(77,214,255,.3);
     filter: blur(0);
   }
-  82%  {
-    /* 反向微回弹 — 被指尖轻推后稳住 */
-    transform: translateX(-1px) translateY(0) scale(1.01) rotate(-0.4deg);
-    box-shadow: 0 5px 0 rgba(0,0,0,.5), 0 0 8px rgba(77,214,255,.2);
+  85%  {
+    /* 微反弹 — 几乎不可察觉 */
+    transform: translateX(-0.5px) translateY(0) scale(1.005) rotate(-0.2deg);
+    box-shadow: 0 5px 0 rgba(0,0,0,.5);
   }
   100% {
     transform: translateX(0) translateY(0) scale(1) rotate(0);
