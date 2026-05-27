@@ -110,6 +110,8 @@ function suitColor(suit) {
   overflow: hidden;
   /* v7 关键：position: relative 让 DeckPile absolute 可以锚定 */
   position: relative;
+  /* v7.23：z-index 高于 Joker 段（JokerArea overflow visible 会让空槽虚线穿到 PlayArea 顶部）*/
+  z-index: 10;
   background: rgba(5,8,24,.5);
 }
 
@@ -139,6 +141,9 @@ function suitColor(suit) {
     -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
     0 0 18px rgba(255,209,102,.95), 0 0 36px rgba(255,209,102,.55);
   box-shadow: 0 6px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
+  /* v7.23：自身也设 z-index，双保险 */
+  position: relative;
+  z-index: 100;
 }
 .hand-name-pop-enter-active {
   animation: handNamePop calc(0.5s * var(--anim-scale)) cubic-bezier(.34,1.56,.64,1);
