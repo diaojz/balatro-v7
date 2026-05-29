@@ -79,7 +79,10 @@
       <span class="round-text">回合 {{ round }}</span>
     </div>
 
-    <!-- 8. 重新开始 -->
+    <!-- 8. 游戏规则 + 重新开始 -->
+    <button class="px-btn px-btn-rules rules-btn" @click="$emit('show-rules')">
+      📖 游戏规则
+    </button>
     <button class="px-btn px-btn-restart restart-btn" @click="$emit('restart')">
       重新开始
     </button>
@@ -108,7 +111,7 @@ const props = defineProps({
 const totalBlinds = TOTAL_BLINDS
 const totalAntes = TOTAL_ANTES
 
-defineEmits(['restart'])
+defineEmits(['restart', 'show-rules'])
 
 // 暴露 DOM refs 给父组件用于飞字动画
 const chipsEl = ref(null)
@@ -372,8 +375,17 @@ const rewardPreview = computed(() => {
   color: #60a5fa;
 }
 
-.restart-btn {
+.rules-btn {
   width: 100%;
   margin-top: auto;
+}
+.px-btn-rules {
+  background: linear-gradient(180deg, #4a6bff 0%, #3a52cc 50%, #2a3a99 100%);
+  box-shadow: 0 4px 0 #1e2a6e, 0 6px 12px rgba(74,107,255,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  color: #fff;
+}
+.restart-btn {
+  width: 100%;
+  margin-top: 8px;
 }
 </style>

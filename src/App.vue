@@ -13,6 +13,7 @@
       :hand-chips="lastChips"
       :hand-mult="lastMult"
       @restart="handleRestart"
+      @show-rules="showRules = true"
       ref="sideBarRef"
     />
 
@@ -80,6 +81,12 @@
       @update="handleSettingsUpdate"
     />
 
+    <!-- 游戏规则 Modal -->
+    <RulesModal
+      v-if="showRules"
+      @close="showRules = false"
+    />
+
     <!-- 商店覆盖层 -->
     <ShopView
       v-if="gameState === 'shop'"
@@ -113,6 +120,7 @@ import PlayArea from './components/PlayArea.vue'
 import HandArea from './components/HandArea.vue'
 import SettingsButton from './components/SettingsButton.vue'
 import SettingsModal from './components/SettingsModal.vue'
+import RulesModal from './components/RulesModal.vue'
 import ShopView from './components/ShopView.vue'
 import EndView from './components/EndView.vue'
 
@@ -205,6 +213,7 @@ function triggerSortingAnim() {
 // 设置
 const settings = ref(loadSettings())
 const showSettings = ref(false)
+const showRules = ref(false)
 
 // v7.2 关卡切换 toast（v7.11：含 Ante 信息）
 const blindToastText = ref('')
